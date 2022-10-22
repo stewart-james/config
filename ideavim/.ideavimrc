@@ -1,0 +1,78 @@
+let mapleader = " "
+
+" Plugins
+set NERDTree
+set exchange
+set highlightedyank
+set easymotion
+set ideajoin
+set sneak
+
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'terryma/vim-multiple-cursors'
+map mc <A-n>
+map mx <A-x>
+map mp <A-p>
+
+set commentary
+
+set notimeout
+
+set easymotion
+
+" Settings
+set number relativenumber
+
+" Quickly edit/reload this configuration file
+nnoremap gev :e ~\.ideavimrc<CR>
+nnoremap gsv :so ~\.ideavimrc<CR>
+
+
+" tool windows
+nnoremap <leader>we :NERDTreeToggle<CR>
+nnoremap <leader>wt :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>wu :action ActivateUnitTestsToolWindow<CR>
+nnoremap <leader>wg :action ActivateVersionControlToolWindow<CR>
+nnoremap <leader>wc :action ActivateCommitToolWindow<CR>
+nnoremap <leader>wp :action ActivateNuGetToolWindow<CR>
+nnoremap <leader>wq :action HideAllWindows<CR>
+nnoremap <leader>wd :action ShowBlankDiffWindow<CR>
+nnoremap <leader>w<TAB> :action JumpToLastWindow<CR>
+
+" find
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader>fa :action SearchEverywhere<CR>
+nnoremap <leader>fc :action GoToClass<CR>
+
+" goto
+nnoremap <leader>gc :action GoToClass<CR>
+nnoremap <leader>gi :action ReSharperGotoImplementation<CR>
+nnoremap <leader>gd :action GotoDeclaration<CR>
+nnoremap <leader>gp :action GoToSuperMethod<CR>
+
+" quicks
+nnoremap <leader>qi :action QuickImplementations<CR>
+
+" unit tests
+nnoremap <leader>uc :action RiderUnitTestRunContextAction<CR>
+nnoremap <leader>ud :action RiderUnitTestDebugContextAction<CR>
+
+" debugging
+nnoremap <leader>b :action ToggleLineBreakpoint<CR>
+
+
+nnoremap <leader>r :action ReformatCode<CR>
+nnoremap <leader>t :action OptimizeImports<CR>
+nnoremap <leader>p :action ToggleDistractionFreeMode<CR>
+
+nnoremap <TAB> :action PreviousTab<CR>
+nnoremap <s-TAB> :action NextTab<CR>
+
+nnoremap <leader>e :action EditSourceInNewWindow<CR>
+nnoremap <leader><TAB> :action NextWindow<CR>
+
+nnoremap <S-Up> :m-2<CR>
+nnoremap <S-Down> :m+<CR>
+inoremap <S-Up> <Esc>:m-2<CR>
+inoremap <S-Down> <Esc>:m+<CR>
