@@ -1,5 +1,7 @@
 local default_servers = {
-  omnisharp = {},
+  --omnisharp = {},
+
+  csharp_ls = {},
 
   lua_ls = {
     Lua = {
@@ -71,5 +73,5 @@ mason_lspconfig.setup_handlers {
   end,
 }
 
-require('omnisharp')
+--require('omnisharp')
 require('copilot')
