@@ -3,7 +3,6 @@
     "$schema": "https://aka.ms/terminal-profiles-schema",
     "actions": 
     [
-				// Splits
 				{
 					"command": 
 					{
@@ -98,7 +97,6 @@
 					"keys": "alt+z"
 				},
 
-				// Tabs
 				{
 					"command": "newTab",
 					"keys": "ctrl+alt+t"
@@ -136,7 +134,7 @@
     "copyFormatting": "none",
     "copyOnSelect": false,
     "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-    "launchMode": "maximized",
+    "launchMode": "focus",
     "profiles": 
     {
         "defaults": 
@@ -156,7 +154,11 @@
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
                 "hidden": false,
                 "name": "PowerShell",
-                "startingDirectory": "c:\\projects\\repos"
+                "startingDirectory": "c:\\projects\\repos",
+                "unfocusedAppearance":
+                {
+                        "background": "#232323"
+                }
             },
             {
                 "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
@@ -220,7 +222,7 @@
             "yellow": "#C19C00"
         },
         {
-            "background": "#1C1C1C",
+            "background": "#282828",
             "black": "#1D2021",
             "blue": "#377375",
             "brightBlack": "#7F7061",
@@ -404,5 +406,5 @@
             "yellow": "#808000"
         }
     ],
-    "startupActions": "new-tab -p Powershell-Admin"
+    "startupActions": ""
 }
