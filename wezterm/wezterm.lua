@@ -35,7 +35,7 @@ config.window_padding = {
 }
 
 local act = wezterm.action
-config.leader = { key = 'a', mods = 'CTRL' }
+config.leader = { key = 's', mods = 'CTRL' }
 config.keys = {
 
 	{ key = 't', mods = 'LEADER', action = wezterm.action.SpawnTab('CurrentPaneDomain'), },
@@ -54,6 +54,16 @@ config.keys = {
 	{ key = 'k', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Up"), },
 	{ key = 'j', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Down"), },
 	{ key = 'h', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Left"), },
+
+	{
+		key = 'A',
+		mods = 'CTRL', -- Use CTRL for Ctrl+A
+		action = wezterm.action_callback(function(window, pane)
+			local dims = pane:get_dimensions()
+			local txt = pane:get_text_from_region(0, dims.scrollback_top, 0, dims.scrollback_top + dims.scrollback_rows)
+			window:copy_to_clipboard(txt:match('^%s*(.-)%s*$')) -- Trim leading and trailing whitespace
+		end)
+	},
 }
 
 
