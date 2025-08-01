@@ -35,17 +35,17 @@ config.window_padding = {
 }
 
 local act = wezterm.action
-config.leader = { key = 's', mods = 'CTRL' }
+config.leader = { key = 'q', mods = 'ALT' }
 config.keys = {
 
 	{ key = 't', mods = 'LEADER', action = wezterm.action.SpawnTab('CurrentPaneDomain'), },
 	{ key = 'q', mods = 'LEADER', action = wezterm.action.CloseCurrentTab { confirm = false } },
 
-	{ key = "1", mods = "CTRL",   action = act.ActivateTab(0) },
-	{ key = "2", mods = "CTRL",   action = act.ActivateTab(1) },
-	{ key = "3", mods = "CTRL",   action = act.ActivateTab(2) },
-	{ key = "4", mods = "CTRL",   action = act.ActivateTab(4) },
-	{ key = "5", mods = "CTRL",   action = act.ActivateTab(4) },
+	{ key = "1", mods = "LEADER",   action = act.ActivateTab(0) },
+	{ key = "2", mods = "LEADER",   action = act.ActivateTab(1) },
+	{ key = "3", mods = "LEADER",   action = act.ActivateTab(2) },
+	{ key = "4", mods = "LEADER",   action = act.ActivateTab(4) },
+	{ key = "5", mods = "LEADER",   action = act.ActivateTab(4) },
 
 	{ key = "v", mods = "LEADER", action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
 	{ key = "s", mods = "LEADER", action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
@@ -54,6 +54,11 @@ config.keys = {
 	{ key = 'k', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Up"), },
 	{ key = 'j', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Down"), },
 	{ key = 'h', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Left"), },
+
+	{ key = 'UpArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Up", 5 } },
+	{ key = 'DownArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Down", 5 } },
+	{ key = 'LeftArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Left", 5 } },
+	{ key = 'RightArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Right", 5 } },
 
 	{
 		key = 'A',
