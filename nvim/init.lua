@@ -185,7 +185,7 @@ local keymaps =
 	{ 'n', '<leader>la',       vim.lsp.buf.code_action,                  { desc = "Code [A]ction" } },
 
 	-- dotnet stuff
-	{ 'n', '<leader>r',        require("easy-dotnet").run,               { desc = "[R]un" } },
+	{ 'n', '<leader>r',        require("easy-dotnet").run_default,       { desc = "[R]un" } },
 	{ 'n', '<leader>t',        require("easy-dotnet").testrunner,        { desc = "[T]est" } },
 	{ 'n', '<leader>c',        require("easy-dotnet").clean,             { desc = "[C]lean" } },
 	{ 'n', '<leader>b',        require("easy-dotnet").build,             { desc = "[B]uild" } },
