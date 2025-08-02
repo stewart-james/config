@@ -125,7 +125,7 @@ require("easy-dotnet").setup {
 	terminal = function(path, action, args)
 		local commands = {
 			run = function()
-				return string.format("dotnet run --project %s %s", path, args)
+				return string.format("dotnet run --property WarningLevel=0 --project %s %s", path, args)
 			end,
 			test = function()
 				return string.format("dotnet test %s %s", path, args)
@@ -205,6 +205,7 @@ for _, map in ipairs(keymaps) do
 end
 
 vim.cmd([[tnoremap <Esc> <C-\><C-n>:call feedkeys("\<C-c>")<CR>]])
+vim.cmd([[nnoremap <silent> <Esc> :noh<CR>]])
 
 require('telescope').setup({
 	defaults = {

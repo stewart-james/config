@@ -38,26 +38,26 @@ local act = wezterm.action
 config.leader = { key = 'q', mods = 'ALT' }
 config.keys = {
 
-	{ key = 't', mods = 'LEADER', action = wezterm.action.SpawnTab('CurrentPaneDomain'), },
-	{ key = 'q', mods = 'LEADER', action = wezterm.action.CloseCurrentTab { confirm = false } },
+	{ key = 't',          mods = 'LEADER', action = wezterm.action.SpawnTab('CurrentPaneDomain'), },
+	{ key = 'q',          mods = 'LEADER', action = wezterm.action.CloseCurrentTab { confirm = false } },
 
-	{ key = "1", mods = "LEADER",   action = act.ActivateTab(0) },
-	{ key = "2", mods = "LEADER",   action = act.ActivateTab(1) },
-	{ key = "3", mods = "LEADER",   action = act.ActivateTab(2) },
-	{ key = "4", mods = "LEADER",   action = act.ActivateTab(4) },
-	{ key = "5", mods = "LEADER",   action = act.ActivateTab(4) },
+	{ key = "1",          mods = "LEADER", action = act.ActivateTab(0) },
+	{ key = "2",          mods = "LEADER", action = act.ActivateTab(1) },
+	{ key = "3",          mods = "LEADER", action = act.ActivateTab(2) },
+	{ key = "4",          mods = "LEADER", action = act.ActivateTab(4) },
+	{ key = "5",          mods = "LEADER", action = act.ActivateTab(4) },
 
-	{ key = "v", mods = "LEADER", action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
-	{ key = "s", mods = "LEADER", action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+	{ key = "v",          mods = "LEADER", action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+	{ key = "s",          mods = "LEADER", action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
 
-	{ key = 'l', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Right"), },
-	{ key = 'k', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Up"), },
-	{ key = 'j', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Down"), },
-	{ key = 'h', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Left"), },
+	{ key = 'l',          mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Right"), },
+	{ key = 'k',          mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Up"), },
+	{ key = 'j',          mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Down"), },
+	{ key = 'h',          mods = 'LEADER', action = wezterm.action.ActivatePaneDirection("Left"), },
 
-	{ key = 'UpArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Up", 5 } },
-	{ key = 'DownArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Down", 5 } },
-	{ key = 'LeftArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Left", 5 } },
+	{ key = 'UpArrow',    mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Up", 5 } },
+	{ key = 'DownArrow',  mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Down", 5 } },
+	{ key = 'LeftArrow',  mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Left", 5 } },
 	{ key = 'RightArrow', mods = 'LEADER', action = wezterm.action.AdjustPaneSize { "Right", 5 } },
 
 	{
@@ -68,6 +68,33 @@ config.keys = {
 			local txt = pane:get_text_from_region(0, dims.scrollback_top, 0, dims.scrollback_top + dims.scrollback_rows)
 			window:copy_to_clipboard(txt:match('^%s*(.-)%s*$')) -- Trim leading and trailing whitespace
 		end)
+	},
+
+	{
+		key = 'g',
+		mods = 'LEADER',
+		action = wezterm.action.ActivateKeyTable {
+			name = 'git_table',
+			one_shot = true,
+		},
+	},
+
+}
+
+config.key_tables = {
+	git_table = {
+		{
+			key = 's',
+			action = wezterm.action.SendString("git status\r"),
+		},
+		{
+			key = 'd',
+			action = wezterm.action.SendString("git diff\r"),
+		},
+		{
+			key = 'r',
+			action = wezterm.action.SendString("git commit -am 'minor refactor'\r"),
+		},
 	},
 }
 
