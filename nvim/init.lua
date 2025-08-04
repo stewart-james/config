@@ -276,3 +276,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
 vim.cmd("colorscheme catppuccin")
 
 vim.diagnostic.config({ virtual_lines = true })
+
+-- automatically enter insert mode when opening a terminal
+vim.api.nvim_create_autocmd("TermOpen", {
+  pattern = "*",
+  command = "startinsert",
+})
