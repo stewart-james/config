@@ -37,12 +37,8 @@ vim.pack.add(
 		{ src = "https://github.com/folke/which-key.nvim" },
 
 		-- auto completion
-		{ src = "https://github.com/hrsh7th/nvim-cmp" },
-		{ src = "https://github.com/hrsh7th/cmp-nvim-lsp" },
-		{ src = "https://github.com/saadparwaiz1/cmp_luasnip" },
 
 		-- snippets
-		{ src = "https://github.com/L3MON4D3/LuaSnip" },
 
 		-- language servers
 		{
@@ -60,56 +56,6 @@ vim.pack.add(
 		{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
 		{ src = "https://github.com/kkoomen/vim-doge" },
 	});
-
-local cmp = require('cmp')
-local luasnip = require('luasnip')
-
-require('luasnip.loaders.from_vscode').lazy_load {
-	exclude = { "csharp" } }
-luasnip.config.setup {}
-
-cmp.setup {
-	snippet = {
-		expand = function(args)
-			luasnip.lsp_expand(args.body)
-		end,
-	},
-	mapping = cmp.mapping.preset.insert {
-		['<C-n>'] = cmp.mapping.select_next_item(),
-		['<C-p>'] = cmp.mapping.select_prev_item(),
-		['<C-d>'] = cmp.mapping.scroll_docs(-4),
-		['<C-f>'] = cmp.mapping.scroll_docs(4),
-		['<C-Space>'] = cmp.mapping.complete {},
-		['<CR>'] = cmp.mapping.confirm {
-			behavior = cmp.ConfirmBehavior.Replace,
-			select = true,
-		},
-		['<Tab>'] = cmp.mapping(function(fallback)
-			if cmp.visible() then
-				cmp.select_next_item()
-			elseif luasnip.expand_or_locally_jumpable() then
-				luasnip.expand_or_jump()
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
-		['<S-Tab>'] = cmp.mapping(function(fallback)
-			if cmp.visible() then
-				cmp.select_prev_item()
-			elseif luasnip.locally_jumpable(-1) then
-				luasnip.jump(-1)
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
-	},
-	sources = {
-		{ name = 'nvim_lsp' },
-		{ name = 'luasnip' },
-	},
-}
-
-require("snippets")
 
 require("nvim-tree").setup {}
 require("todo-comments").setup {
@@ -269,17 +215,6 @@ require('nvim-treesitter.configs').setup {
 		enable = true,
 	},
 }
-
--- auto complete
-vim.cmd("set completeopt+=noselect")
-vim.api.nvim_create_autocmd('LspAttach', {
-	callback = function(ev)
-		local client = vim.lsp.get_client_by_id(ev.data.client_id)
-		if client:supports_method('textDocument/completion') then
-			vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
-		end
-	end,
-})
 
 vim.cmd("colorscheme catppuccin")
 
