@@ -39,6 +39,9 @@ vim.pack.add(
 		-- auto completion
 		{ src = "https://github.com/saghen/blink.cmp" },
 
+		-- snippets
+		{ src = "https://github.com/L3MON4D3/LuaSnip" },
+
 		-- language servers
 		{
 			src = "https://github.com/nvim-treesitter/nvim-treesitter",
@@ -55,6 +58,13 @@ vim.pack.add(
 		{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
 		{ src = "https://github.com/kkoomen/vim-doge" },
 	});
+
+local luasnip = require('luasnip')
+
+require('luasnip.loaders.from_vscode').lazy_load {
+	exclude = { "csharp" } }
+luasnip.config.setup {}
+require("snippets")
 
 require("blink.cmp").setup {
 	fuzzy = { implementation = "lua" },
@@ -73,6 +83,10 @@ require("blink.cmp").setup {
 			auto_show = true,
 			auto_show_delay_ms = 500
 		}
+	},
+	snippets =
+	{
+		preset = 'luasnip'
 	},
 	signature = {
 		enabled = true
