@@ -145,6 +145,7 @@ require("easy-dotnet").setup {
 		vim.cmd("split")
 		vim.cmd("resize 30")
 		vim.cmd("term " .. command)
+		vim.cmd("startinsert")
 	end,
 
 }
@@ -284,8 +285,3 @@ vim.cmd("colorscheme catppuccin")
 
 vim.diagnostic.config({ virtual_lines = true })
 
--- automatically enter insert mode when opening a terminal
-vim.api.nvim_create_autocmd("TermOpen", {
-  pattern = "*",
-  command = "startinsert",
-})
