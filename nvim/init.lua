@@ -37,8 +37,7 @@ vim.pack.add(
 		{ src = "https://github.com/folke/which-key.nvim" },
 
 		-- auto completion
-
-		-- snippets
+		{ src = "https://github.com/saghen/blink.cmp" },
 
 		-- language servers
 		{
@@ -56,6 +55,72 @@ vim.pack.add(
 		{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
 		{ src = "https://github.com/kkoomen/vim-doge" },
 	});
+
+require("blink.cmp").setup {
+	fuzzy = { implementation = "lua" },
+	completion =
+	{
+		list =
+		{
+			selection =
+			{
+				preselect = true,
+				auto_insert = false
+			}
+		},
+		documentation =
+		{
+			auto_show = true,
+			auto_show_delay_ms = 500
+		}
+	},
+	signature = {
+		enabled = true
+	},
+	keymap =
+	{
+		preset = 'none',
+
+		['<C-e>'] = { 'hide', 'fallback' },
+
+		['<CR>'] = {
+			function(cmp)
+				if cmp.snippet_active() then
+					return cmp.accept()
+				else
+					return cmp.select_and_accept()
+				end
+			end,
+			'snippet_forward',
+			'fallback'
+		},
+
+		['<Tab>'] = {
+			function(cmp)
+				if cmp.snippet_active() then
+					return cmp.accept()
+				else
+					return cmp.select_and_accept()
+				end
+			end,
+			'snippet_forward',
+			'fallback'
+		},
+
+		['<S-Tab>'] = { 'snippet_backward', 'fallback' },
+
+		['<Up>'] = { 'select_prev', 'fallback' },
+		['<Down>'] = { 'select_next', 'fallback' },
+		['<C-p>'] = { 'select_prev', 'fallback_to_mappings' },
+		['<C-n>'] = { 'select_next', 'fallback_to_mappings' },
+
+		['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
+		['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+
+		['<C-k>'] = { 'show_signature', 'hide_signature', 'fallback' },
+
+	}
+}
 
 require("nvim-tree").setup {}
 require("todo-comments").setup {
@@ -219,4 +284,3 @@ require('nvim-treesitter.configs').setup {
 vim.cmd("colorscheme catppuccin")
 
 vim.diagnostic.config({ virtual_lines = true })
-
