@@ -39,6 +39,10 @@ vim.pack.add(
 		-- auto completion
 		{ src = "https://github.com/saghen/blink.cmp" },
 
+		-- AI
+		{ src = "https://github.com/olimorris/codecompanion.nvim" },
+		{ src = "https://github.com/github/copilot.vim" },
+
 		-- snippets
 		{ src = "https://github.com/L3MON4D3/LuaSnip" },
 
@@ -58,6 +62,22 @@ vim.pack.add(
 		{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
 		{ src = "https://github.com/kkoomen/vim-doge" },
 	});
+
+require("render-markdown").setup(
+	{
+		filetypes = { "markdown", "codecompanion" },
+	})
+
+require("codecompanion").setup({
+	opts = {
+		log_level = "DEBUG"
+	},
+	strategies = {
+		chat = { adapter = "copilot" },
+		inline = { adapter = "copilot" },
+		cmd = { adapter = "copilot" },
+	}
+})
 
 local luasnip = require('luasnip')
 
