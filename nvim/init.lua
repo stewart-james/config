@@ -399,6 +399,7 @@ require("which-key").add({
 	{ "<leader>h", group = "[H]unk (git)" },
 	{ "<leader>x", group = "[X] Trouble diagnostics" },
 	{ "<leader>p", group = "[P]ersistence" },
+	{ "<leader>i", group = "[I]AI" },
 })
 
 local keymaps = {
@@ -475,6 +476,17 @@ local keymaps = {
 	{ "n", "<leader>ps",       function() require("persistence").load() end,               { desc = "[P]ersistence load [S]ession" } },
 	{ "n", "<leader>pl",       function() require("persistence").load({ last = true }) end, { desc = "[P]ersistence [L]ast session" } },
 	{ "n", "<leader>px",       function() require("persistence").stop() end,               { desc = "[P]ersistence stop" } },
+
+	-- AI
+	{ "n", "<leader>id", function()
+		if vim.bo.filetype ~= "cs" then
+			vim.notify("Only works in C# files", vim.log.levels.WARN)
+			return
+		end
+		require("avante.api").ask({
+			question = "Add C# XML <summary> documentation comments to all public classes, methods, and properties that are missing XML documentation. Only add /// <summary>...</summary> doc comment blocks immediately above each undocumented public member. Do not modify any existing code or existing documentation.",
+		})
+	end, { desc = "[I]AI [D]ocument C# public members" } },
 
 	-- harpoon
 	{ "n", "<leader>a",        function() harpoon:list():add() end,                        { desc = "Harpoon add file" } },
