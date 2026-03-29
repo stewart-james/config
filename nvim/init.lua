@@ -73,6 +73,10 @@ vim.pack.add({
 	{ src = "https://github.com/folke/persistence.nvim" },
 	{ src = "https://github.com/karb94/neoscroll.nvim" },
 
+	-- navigation
+	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
+
+
 	-- keymaps
 	{ src = "https://github.com/folke/which-key.nvim" },
 
@@ -343,6 +347,10 @@ require("todo-comments").setup()
 
 require("persistence").setup()
 
+local harpoon = require("harpoon")
+harpoon:setup()
+
+
 require("conform").setup({
 	formatters_by_ft = {
 		lua = { "stylua" },
@@ -464,9 +472,18 @@ local keymaps = {
 	{ "n", "[t",               function() require("todo-comments").jump_prev() end, { desc = "Prev todo" } },
 
 	-- persistence
-	{ "n", "<leader>ps",       function() require("persistence").load() end,              { desc = "[P]ersistence load [S]ession" } },
+	{ "n", "<leader>ps",       function() require("persistence").load() end,               { desc = "[P]ersistence load [S]ession" } },
 	{ "n", "<leader>pl",       function() require("persistence").load({ last = true }) end, { desc = "[P]ersistence [L]ast session" } },
-	{ "n", "<leader>px",       function() require("persistence").stop() end,              { desc = "[P]ersistence stop" } },
+	{ "n", "<leader>px",       function() require("persistence").stop() end,               { desc = "[P]ersistence stop" } },
+
+	-- harpoon
+	{ "n", "<leader>a",        function() harpoon:list():add() end,                        { desc = "Harpoon add file" } },
+	{ "n", "<C-e>",            function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = "Harpoon menu" } },
+	{ "n", "<leader>1",        function() harpoon:list():select(1) end,                    { desc = "Harpoon file 1" } },
+	{ "n", "<leader>2",        function() harpoon:list():select(2) end,                    { desc = "Harpoon file 2" } },
+	{ "n", "<leader>3",        function() harpoon:list():select(3) end,                    { desc = "Harpoon file 3" } },
+	{ "n", "<leader>4",        function() harpoon:list():select(4) end,                    { desc = "Harpoon file 4" } },
+
 }
 
 for _, map in ipairs(keymaps) do

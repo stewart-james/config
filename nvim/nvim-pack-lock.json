@@ -20,6 +20,10 @@
       "rev": "4516612fe98ff56ae0415a259ff6361a89419b0a",
       "src": "https://github.com/sindrets/diffview.nvim"
     },
+    "duck.nvim": {
+      "rev": "d8a6b08af440e5a0e2b3b357e2f78bb1883272cd",
+      "src": "https://github.com/tamton-aquib/duck.nvim"
+    },
     "easy-dotnet.nvim": {
       "rev": "78ad64c98cb0f885977ea9307a303bcb58e5283b",
       "src": "https://github.com/GustavEikaas/easy-dotnet.nvim"
@@ -31,6 +35,11 @@
     "gitsigns.nvim": {
       "rev": "50c205548d8b037b7ff6378fca6d21146f0b6161",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
+    },
+    "harpoon": {
+      "rev": "87b1a3506211538f460786c23f98ec63ad9af4e5",
+      "src": "https://github.com/ThePrimeagen/harpoon",
+      "version": "'harpoon2'"
     },
     "lsp_signature.nvim": {
       "rev": "af7e4074d85d785cf6614352ba9ad3b28a1f8a56",
@@ -152,6 +161,10 @@
     "which-key.nvim": {
       "rev": "3aab2147e74890957785941f0c1ad87d0a44c15a",
       "src": "https://github.com/folke/which-key.nvim"
+    },
+    "zone.nvim": {
+      "rev": "fe33ba5b92af340a811822cd8d978695f2141bf9",
+      "src": "https://github.com/tamton-aquib/zone.nvim"
     }
   }
 }
