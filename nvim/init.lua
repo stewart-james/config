@@ -1,176 +1,244 @@
-vim.o.number = true         -- display line numbers
+vim.o.number = true -- display line numbers
 vim.o.relativenumber = true -- display relative line numbers
-vim.o.signcolumn = "yes"    -- always show the sign column
-vim.o.wrap = false          -- disable line wrapping
-vim.o.tabstop = 4           -- a tab should LOOK like 4 characters
-vim.o.softtabstop = 4       -- a tab should insert 1 tab ( equivilent of 4 spaces )
-vim.o.shiftwidth = 4        -- a tab should insert 1 column ( equivilent of 4 spaces)
-vim.o.expandtab = false     -- use tabs not spaces
-vim.o.autoindent = true     -- automatically copy the indentation of the current line when starting a new line
-vim.o.splitbelow = true     -- ensure horizontal splits are opened below
-vim.o.splitright = true     -- ensure vertical splits are opened to the right
-vim.o.swapfile = false      -- disable creation of swapfiles
+vim.o.signcolumn = "yes" -- always show the sign column
+vim.o.wrap = false -- disable line wrapping
+vim.o.tabstop = 4 -- a tab should LOOK like 4 characters
+vim.o.softtabstop = 4 -- a tab should insert 1 tab ( equivilent of 4 spaces )
+vim.o.shiftwidth = 4 -- a tab should insert 1 column ( equivilent of 4 spaces)
+vim.o.expandtab = false -- use tabs not spaces
+vim.o.autoindent = true -- automatically copy the indentation of the current line when starting a new line
+vim.o.splitbelow = true -- ensure horizontal splits are opened below
+vim.o.splitright = true -- ensure vertical splits are opened to the right
+vim.o.swapfile = false -- disable creation of swapfiles
 vim.o.title = true
 vim.o.titlestring = [[%t – %{fnamemodify(getcwd(), ':t')}]]
+vim.diagnostic.config({ virtual_text = { prefix = "●" } })
+vim.o.clipboard = "unnamedplus"
 
 vim.g.mapleader = " "
 
--- packages
-vim.pack.add(
-	{
-		-- appearance
-		{ src = "https://github.com/catppuccin/nvim" },
+vim.pack.add({
 
-		-- file tree
-		{ src = "https://github.com/nvim-tree/nvim-tree.lua" },
+	-- appearance
+	{ src = "https://github.com/catppuccin/nvim" },
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },
 
-		-- fuzzy find
-		{ src = "https://github.com/nvim-lua/plenary.nvim" },
-		{ src = "https://github.com/nvim-telescope/telescope.nvim" },
+	-- file tree
+	{ src = "https://github.com/nvim-tree/nvim-tree.lua" },
 
-		-- git
-		{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-		{ src = "https://github.com/NeogitOrg/neogit" },
-		{ src = "https://github.com/sindrets/diffview.nvim" },
+	-- fuzzy find
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },
+	{ src = "https://github.com/nvim-telescope/telescope.nvim" },
 
-		-- keymaps
-		{ src = "https://github.com/folke/which-key.nvim" },
+	-- auto complete
+	{ src = "https://github.com/saghen/blink.cmp" },
 
-		-- auto completion
-		{ src = "https://github.com/saghen/blink.cmp" },
+	-- git
+	{ src = "https://github.com/NeogitOrg/neogit" },
+	{ src = "https://github.com/sindrets/diffview.nvim" },
 
-		-- AI
-		{ src = "https://github.com/olimorris/codecompanion.nvim" },
-		{ src = "https://github.com/github/copilot.vim" },
+	-- keymaps
+	{ src = "https://github.com/folke/which-key.nvim" },
 
-		-- snippets
-		{ src = "https://github.com/L3MON4D3/LuaSnip" },
+	-- LSP
+	{ src = "https://github.com/neovim/nvim-lspconfig" },
+	{ src = "https://github.com/mason-org/mason.nvim" },
+	{ src = "https://github.com/mason-org/mason-lspconfig.nvim" },
 
-		-- language servers
-		{
-			src = "https://github.com/nvim-treesitter/nvim-treesitter",
-			version = 'master'
-		},
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "master" },
+	{ src = "https://github.com/ray-x/lsp_signature.nvim" },
 
-		-- C#
-		{ src = "https://github.com/seblyng/roslyn.nvim" },
-		{ src = "https://github.com/GustavEikaas/easy-dotnet.nvim" },
-		{ src = "https://github.com/DestopLine/boilersharp.nvim" },
+	-- Debug
+	{ src = "https://github.com/mfussenegger/nvim-dap" },
+	{ src = "https://github.com/nvim-neotest/nvim-nio" },
+	{ src = "https://github.com/rcarriga/nvim-dap-ui" },
 
-		-- misc
-		{ src = "https://github.com/folke/todo-comments.nvim" },
-		{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
-		{ src = "https://github.com/kkoomen/vim-doge" },
-	});
+	-- Test
+	--{ src = "https://github.com/nvim-neotest/nvim-nio"},
+	--{ src = "https://github.com/nvim-neotest/neotest"},
+	--{ src = "https://github.com/Issafalcon/neotest-dotnet"},
 
-require("render-markdown").setup(
-	{
-		filetypes = { "markdown", "codecompanion" },
-	})
+	-- C#
+	--{ src = "https://github.com/seblyng/roslyn.nvim" },
+	{ src = "https://github.com/GustavEikaas/easy-dotnet.nvim" },
 
-require("codecompanion").setup({
-	opts = {
-		log_level = "DEBUG"
-	},
-	strategies = {
-		chat = { adapter = "copilot" },
-		inline = { adapter = "copilot" },
-		cmd = { adapter = "copilot" },
-	}
+	{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
+
+	-- AI
+	{ src = "https://github.com/zbirenbaum/copilot.lua" },
+	{ src = "https://github.com/yetone/avante.nvim" },
 })
 
-local luasnip = require('luasnip')
+--require('mason-lspconfig').setup()
+require("mason").setup({
+	registries = {
+		"github:mason-org/mason-registry",
+		"github:Crashdummyy/mason-registry",
+	},
+})
+require("mason-lspconfig").setup({
+	ensure_installed = {
+		--"●lua-language-server",
+		-- "xmlformatter",
+		-- "csharpier",
+		-- "prettier",
+		-- "stylua",
+		--"html-lsp",
+		--"css-lsp",
+		--"eslint-lsp",
+		--"json-lsp",
+		--"roslyn", run manually :MasonInstall roslyn
+	},
+})
 
-require('luasnip.loaders.from_vscode').lazy_load {
-	exclude = { "csharp" } }
-luasnip.config.setup {}
-require("snippets")
+require("nvim-treesitter.configs").setup({
+	ensure_installed = {
+		"c",
+		"css",
+		"c_sharp",
+		"razor",
+		"vim",
+		"vimdoc",
+		"query",
+		"markdown",
+		"markdown_inline",
+		"xml",
+		"html",
+	},
 
-require("blink.cmp").setup {
-	fuzzy = { implementation = "lua" },
-	completion =
-	{
-		list =
-		{
-			selection =
-			{
-				preselect = true,
-				auto_insert = false
-			}
+	highlight = {
+		enable = true,
+	},
+})
+
+local function preview_diffview_file_under_cursor()
+	local ok, lib = pcall(require, "diffview.lib")
+	if not ok then
+		return
+	end
+
+	local view = lib.get_current_view()
+	if not view or not view.panel or not view.panel:is_focused() then
+		return
+	end
+
+	-- false => do NOT allow directory nodes
+	local file = view:infer_cur_file(false)
+	if not file then
+		return
+	end
+
+	-- focus=false keeps you in the file tree
+	-- highlight=false avoids extra cursor jumping
+	view:set_file(file, false, false)
+end
+
+require("diffview").setup({
+	file_panel = {
+		win_config = {
+			width = 60,
 		},
-		documentation =
-		{
-			auto_show = true,
-			auto_show_delay_ms = 500
-		}
+		indent_width = 1,
 	},
-	snippets =
-	{
-		preset = 'luasnip'
-	},
-	signature = {
-		enabled = true
-	},
-	keymap =
-	{
-		preset = 'none',
-
-		['<C-e>'] = { 'hide', 'fallback' },
-
-		['<CR>'] = {
-			function(cmp)
-				if cmp.snippet_active() then
-					return cmp.accept()
-				else
-					return cmp.select_and_accept()
-				end
+	keymaps = {
+		file_panel = {
+			["j"] = function()
+				vim.cmd.normal({ "j", bang = true })
+				preview_diffview_file_under_cursor()
 			end,
-			'snippet_forward',
-			'fallback'
-		},
-
-		['<Tab>'] = {
-			function(cmp)
-				if cmp.snippet_active() then
-					return cmp.accept()
-				else
-					return cmp.select_and_accept()
-				end
+			["k"] = function()
+				vim.cmd.normal({ "k", bang = true })
+				preview_diffview_file_under_cursor()
 			end,
-			'snippet_forward',
-			'fallback'
+			["<Down>"] = function()
+				vim.cmd.normal({ "j", bang = true })
+				preview_diffview_file_under_cursor()
+			end,
+			["<Up>"] = function()
+				vim.cmd.normal({ "k", bang = true })
+				preview_diffview_file_under_cursor()
+			end,
 		},
+	},
+})
 
-		['<S-Tab>'] = { 'snippet_backward', 'fallback' },
+-- Close neovim with 'q' when we are in diff mode
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "DiffviewFiles",
+	callback = function()
+		vim.keymap.set("n", "q", function()
+			vim.cmd("DiffviewClose")
+			vim.cmd("qa")
+		end, { buffer = true })
+	end,
+})
 
-		['<Up>'] = { 'select_prev', 'fallback' },
-		['<Down>'] = { 'select_next', 'fallback' },
-		['<C-p>'] = { 'select_prev', 'fallback_to_mappings' },
-		['<C-n>'] = { 'select_next', 'fallback_to_mappings' },
+require("lsp_signature").setup({
+	hint_enable = true,
+	floating_window = true,
+})
 
-		['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
-		['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+-- local dap = require("dap")
+-- local netcoredbg_adapter = {
+-- 	type = "executable",
+-- 	command = vim.fn.stdpath("data") .. "mason/packages/netcoredbg/netcoredbg",
+-- 	args = { "--interpreter=vscode"},
+-- }
+--
+-- dap.adapters.netcoredbg = netcoredbg_adapter
+-- dap.adapters.coreclr = netcoredbg_adapter
+-- dap.configurations.cs = {
+-- 	{
+-- 		type = "coreclr",
+-- 		name = "launch - netcoredbg",
+-- 		request = "launch", program = function()
+-- 			return vim.fn.input("Path to dll:", vim.fn.getcwd() .. "/bin/Debug/net8.0", "file")
+--
+-- 		end,
+-- 	},
+-- }
+--
 
-		['<C-k>'] = { 'show_signature', 'hide_signature', 'fallback' },
+local dap = require("dap")
+local dapui = require("dapui")
 
-	}
-}
+dapui.setup()
 
-require("nvim-tree").setup {}
-require("todo-comments").setup {
-	signs = true
-}
-require("boilersharp").setup {}
-require("easy-dotnet").setup {
+-- Open UI automatically when debugging starts
+dap.listeners.after.event_initialized["dapui_config"] = function()
+	dapui.open()
+end
+
+-- Close UI automatically when debugging ends
+dap.listeners.before.event_terminated["dapui_config"] = function()
+	dapui.close()
+end
+
+dap.listeners.before.event_exited["dapui_config"] = function()
+	dapui.close()
+end
+
+-- require("neotest").setup({
+-- 	adapters = {
+-- 		require("neotest-dotnet")
+-- 	}
+-- })
+
+--require('mason-tool-installer').setup({
+--	ensure_installed = { "lua_ls", "csharpier", "lua-language-server", "xmlformatter", "stylua", "html-lsp", "css-lsp", "roslyn", "json-lsp" }
+--})
+require("nvim-tree").setup({ view = { width = 60 } })
+require("easy-dotnet").setup({
 	test_runner = {
-		viewmode = "vsplit",
-		vsplit_width = 50,
+		viewmode = "float",
+		vsplit_width = nil,
 		vsplit = "topright",
 	},
 	terminal = function(path, action, args)
 		local commands = {
 			run = function()
-				return string.format("dotnet run --property WarningLevel=0 --project %s %s", path, args)
+				return string.format("dotnet run --project %s %s", path, args)
 			end,
 			test = function()
 				return string.format("dotnet test %s %s", path, args)
@@ -183,138 +251,197 @@ require("easy-dotnet").setup {
 			end,
 			watch = function()
 				return string.format("dotnet watch --project %s %s", path, args)
-			end
+			end,
 		}
 
 		local command = commands[action]() .. "\r"
 		vim.cmd("split")
 		vim.cmd("resize 30")
 		vim.cmd("term " .. command)
-		vim.cmd("startinsert")
 	end,
-
-}
+})
 
 -- keymaps
-local groups =
-{
-	{ '<leader>s', group = '[S]earch' },
-	{ '<leader>l', group = '[L]anguage Server' },
-	{ '<leader>c', group = '[C]lose' },
+local groups = {
+	{ "<leader>s", group = "[S]earch" },
+	{ "<leader>l", group = "[L]anguage Server" },
+	{ "<leader>c", group = "[C]lose" },
 }
 
-local keymaps =
-{
+local keymaps = {
 	-- general
-	{ 'n', '<leader>o',        ':update<CR> :source<CR>',                { silent = true, desc = "Save and source file" } },
-	{ 'n', '<leader>w',        ':write<CR>',                             { silent = true, desc = "Write file" } },
-	{ 'n', '<leader>q',        ':quit<CR>',                              { silent = true, desc = "Quit" } },
-	{ 'n', '<leader>ct',       ':tabclose<CR>',                          { desc = "[C]lose [T]ab" } },
-	{ 'n', '<leader><tab>',    '<C-^>',                                  { noremap = true } },
+	{
+		"n",
+		"<leader>o",
+		":update<CR> :source<CR>",
+		{ silent = true, desc = "Save and source file" },
+	},
+	{ "n", "<leader>w", ":write<CR>", { silent = true, desc = "Write file" } },
+	{ "n", "<leader>q", ":quit<CR>", { silent = true, desc = "Quit" } },
+	{ "n", "<leader>ct", ":tabclose<CR>", { desc = "[C]lose [T]ab" } },
+	{ "n", "<leader><tab>", "<C-^>", { noremap = true } },
 
 	-- search
-	{ 'n', '<leader>sf',       require("telescope.builtin").find_files,  { desc = "[S]earch [F]iles" } },
-	{ 'n', '<leader>st',       require("telescope.builtin").git_files,   { desc = "[S]earch GitT] Files" } },
-	{ 'n', '<leader>sh',       require("telescope.builtin").help_tags,   { desc = "[S]earch [H]elp" } },
-	{ 'n', '<leader>sk',       require("telescope.builtin").keymaps,     { desc = "[S]earch [K]eymaps" } },
-	{ 'n', '<leader>sg',       require("telescope.builtin").live_grep,   { desc = "[S]earch [G]rep" } },
-	{ 'n', '<leader>sd',       require("telescope.builtin").diagnostics, { desc = "[S]earch [D]iagnostics" } },
-	{ 'n', '<leader>sr',       require("telescope.builtin").oldfiles,    { desc = "[S]earch [R]ecent Files" } },
-	{ 'n', '<leader><leader>', require("telescope.builtin").buffers,     { desc = "[ ]Search Buffers" } },
+	{ "n", "<leader>sf", require("telescope.builtin").find_files, { desc = "[S]earch [F]iles" } },
+	{ "n", "<leader>st", require("telescope.builtin").git_files, { desc = "[S]earch GitT] Files" } },
+	{ "n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "[S]earch [H]elp" } },
+	{ "n", "<leader>sk", require("telescope.builtin").keymaps, { desc = "[S]earch [K]eymaps" } },
+	{ "n", "<leader>sg", require("telescope.builtin").live_grep, { desc = "[S]earch [G]rep" } },
+	{ "n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "[S]earch [D]iagnostics" } },
+	{ "n", "<leader>sr", require("telescope.builtin").oldfiles, { desc = "[S]earch [R]ecent Files" } },
+	{ "n", "<leader><leader>", require("telescope.builtin").buffers, { desc = "[ ]Search Buffers" } },
 
 	-- language server
-	{ 'n', '<leader>lf',       vim.lsp.buf.format,                       { desc = "LSP Format buffer" } },
-	{ 'n', '<leader>lh',       vim.lsp.buf.hover,                        { desc = "LSP Hover" } },
-	{ 'n', '<leader>ld',       vim.lsp.buf.definition,                   { desc = "Go to [D]efinition" } },
-	{ 'n', '<leader>li',       vim.lsp.buf.implementation,               { desc = "Go to [I]mplementation" } },
-	{ 'n', '<leader>lr',       vim.lsp.buf.rename,                       { desc = "[R]ename" } },
-	{ 'n', '<leader>la',       vim.lsp.buf.code_action,                  { desc = "Code [A]ction" } },
+	{ "n", "<leader>lf", vim.lsp.buf.format, { desc = "LSP Format buffer" } },
+	{ "n", "<leader>lh", vim.lsp.buf.hover, { desc = "LSP Hover" } },
+	{ "n", "<leader>ld", vim.lsp.buf.definition, { desc = "Go to [D]efinition" } },
+	{ "n", "<leader>li", vim.lsp.buf.implementation, { desc = "Go to [I]mplementation" } },
+	{ "n", "<leader>lr", vim.lsp.buf.rename, { desc = "[R]ename" } },
+	{ "n", "<leader>la", vim.lsp.buf.code_action, { desc = "Code [A]ction" } },
+	{ "n", "<leader>llr", vim.lsp.buf.references, { desc = "[L]ist [R]eferences" } },
+	{ "n", "<leader>le", vim.diagnostic.open_float, { desc = "LSP [E]rror" } },
 
 	-- dotnet stuff
-	{ 'n', '<leader>r',        require("easy-dotnet").run_default,       { desc = "[R]un" } },
-	{ 'n', '<leader>t',        require("easy-dotnet").testrunner,        { desc = "[T]est" } },
-	{ 'n', '<leader>c',        require("easy-dotnet").clean,             { desc = "[C]lean" } },
-	{ 'n', '<leader>b',        require("easy-dotnet").build,             { desc = "[B]uild" } },
-	{ 'n', '<leader>dbs',      require("easy-dotnet").build_solution,    { desc = "[D]otnet [B]uild [S]olution" } },
-	{ 'n', '<leader>dnr',      require("easy-dotnet").restore,           { desc = "[D]otnet [N]uget [R]estore" } },
-	{ 'n', '<leader>dts',      require("easy-dotnet").test_solution,     { desc = "[D]otnet [T]est [S]olution" } },
+	{ "n", "<leader>r", require("easy-dotnet").run, { desc = "[R]un" } },
+	{ "n", "<leader>t", require("easy-dotnet").testrunner, { desc = "[T]est" } },
+	{ "n", "<leader>c", require("easy-dotnet").clean, { desc = "[C]lean" } },
+	--{ 'n', '<leader>b',        require("easy-dotnet").build,             { desc = "[B]uild" } },
+	{ "n", "<leader>dbs", require("easy-dotnet").build_solution, { desc = "[D]otnet [B]uild [S]olution" } },
+	{ "n", "<leader>dnr", require("easy-dotnet").restore, { desc = "[D]otnet [N]uget [R]estore" } },
+	{ "n", "<leader>dts", require("easy-dotnet").test_solution, { desc = "[D]otnet [T]est [S]olution" } },
+	{ "n", "<leader>dtr", require("easy-dotnet").testrunner, { desc = "[D]otnet [Test] [R]unner" } },
+
+	-- debugger
+	{ "n", "<leader>b", require("dap").toggle_breakpoint, { desc = "Toggle [B]reakpoint" } },
+	{ "n", "<F5>", require("dap").continue, { desc = "Start/continue debugging" } },
+	{ "n", "<F10>", require("dap").step_over, { desc = "Step over" } },
+	{ "n", "<F11>", require("dap").step_into, { desc = "Step into" } },
+	{ "n", "<F12>", require("dap").step_out, { desc = "Step out" } },
+	{ "n", "<leader>dj", require("dap").down, { desc = "Go down stack frame" } },
+	{ "n", "<leader>dk", require("dap").up, { desc = "Go up stack frame" } },
 
 	-- git
-	{ 'n', '<leader>n',        ':Neogit<CR>',                            { desc = "[N]eogit" } },
+	{ "n", "<leader>n", ":Neogit<CR>", { desc = "[N]eogit" } },
 
 	-- file tree
-	{ 'n', '<leader>e',        ':NvimTreeToggle<CR>',                    { desc = "Open Tree [E]xplorer" } },
+	{ "n", "<leader>e", ":NvimTreeToggle<CR>", { desc = "Open Tree [E]xplorer" } },
 }
 
 for _, map in ipairs(keymaps) do
 	vim.keymap.set(map[1], map[2], map[3], map[4])
 end
 
-vim.cmd([[tnoremap <Esc> <C-\><C-n>:call feedkeys("\<C-c>")<CR>]])
-vim.cmd([[nnoremap <silent> <Esc> :noh<CR>]])
-
-require('telescope').setup({
-	defaults = {
-		path_display = { "smart" }
-	}
-})
-
 require("which-key").add(groups)
 
--- language servers
-local lsps =
-{
-	lua_ls = {
-		cmd = { 'lua-language-server' },
-		filetypes = { 'lua' },
-		root_markers = { '.luarc.json', '.luarc.jsonc', '.luacheckrc', '.stylua.toml', 'stylua.toml', 'selene.toml', 'selene.yml', '.git' },
-		settings = {
-			Lua = {
-				workspace = {
-					library = vim.api.nvim_get_runtime_file("", true),
-				}
-			}
-		}
-	},
-
-	roslyn = {
-		cmd = {
-			"dotnet",
-			"c:/projects/tools/lsp/roslyn/content/LanguageServer/win-x64/Microsoft.CodeAnalysis.LanguageServer.dll",
-			"--logLevel=Information",
-			"--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
-			"--stdio",
+require("telescope").setup({
+	defaults = {
+		file_ignore_patterns = {
+			"%.exe$",
+			"%.dll$",
+			"%.wdp$",
+			"%.sys$",
+			"%.rc$",
+			"%.inf$",
+			"%.png$",
 		},
-	}
-}
+		path_display = function(_, path)
+			local tail = require("telescope.utils").path_tail(path)
+			local parts = vim.split(path, "\\")
 
-for name, config in pairs(lsps) do
-	vim.lsp.config[name] = config
-	vim.lsp.enable(name)
+			local display_parts = 3
+			if #parts < display_parts then
+				return path
+			end
+
+			return table.concat(vim.list_slice(parts, #parts - display_parts + 1, #parts), "/")
+		end,
+	},
+})
+
+require("render-markdown").setup({
+	file_types = { "markdown", "Avante" },
+})
+
+-- Start Copilot backend used by Avante
+require("copilot").setup({
+	suggestion = { enabled = false },
+	panel = { enabled = false },
+})
+
+-- Avante config
+require("avante").setup({
+	provider = "copilot",
+	-- keep this on something else unless you explicitly want Copilot autosuggestions here too
+	-- auto_suggestions_provider = "copilot",
+})
+
+-- auto complete
+vim.cmd("set completeopt+=noselect")
+vim.api.nvim_create_autocmd("LspAttach", {
+	callback = function(ev)
+		local client = vim.lsp.get_client_by_id(ev.data.client_id)
+		if client:supports_method("textDocument/completion") then
+			vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+		end
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufNewFile", {
+	pattern = "*.cs",
+	callback = function()
+		vim.cmd("EasyDotnetNamespace")
+	end,
+})
+
+-- Show signature help when holding cursor in insert mode
+vim.api.nvim_create_autocmd("CursorHoldI", {
+	callback = function()
+		vim.lsp.buf.signature_help()
+	end,
+})
+
+-- Build Avante after install/update
+vim.api.nvim_create_autocmd("PackChanged", {
+	callback = function(ev)
+		local name = ev.data.spec.name
+		local kind = ev.data.kind
+		if name == "avante.nvim" and (kind == "install" or kind == "update") then
+			vim.system({ "make" }, { cwd = ev.data.path }):wait()
+		end
+	end,
+})
+
+vim.lsp.config("roslyn", {})
+
+--vim.lsp.config["roslyn"] = {
+--cmd = {
+--		"dotnet",
+--		"d:/tools/lsp/roslyn/content/LanguageServer/win-x64/Microsoft.CodeAnalysis.LanguageServer.dll",
+--		"--logLevel=Information",
+--		"--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+--		"--stdio",
+--	},
+--}
+--vim.lsp.enable("roslyn")
+
+local function set_wezterm_mode(mode)
+	if vim.env.TERM_PROGRAM == "WezTerm" then
+		io.write("\027]1337;SetUserVar=NVIM_MODE=" .. vim.base64.encode(mode) .. "\007")
+		io.flush()
+	end
 end
 
--- treesitter --
-require('nvim-treesitter.configs').setup {
-	ensure_installed =
-	{
-		"c",
-		"c_sharp",
-		"lua",
-		"vim",
-		"vimdoc",
-		"query",
-		"markdown",
-		"markdown_inline",
-		"xml"
-	},
+vim.api.nvim_create_autocmd("ModeChanged", {
+	pattern = "*",
+	callback = function()
+		set_wezterm_mode(vim.fn.mode())
+	end,
+})
 
-	auto_install = false, -- do not automatically install missing parsers
-
-	highlight = {
-		enable = true,
-	},
-}
+vim.api.nvim_create_autocmd("VimLeave", {
+	callback = function()
+		set_wezterm_mode("")
+	end,
+})
 
 vim.cmd("colorscheme catppuccin")
-
-vim.diagnostic.config({ virtual_lines = true })
