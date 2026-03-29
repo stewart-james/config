@@ -57,6 +57,21 @@ vim.pack.add({
 
 	-- editing
 	{ src = "https://github.com/windwp/nvim-autopairs" },
+	{ src = "https://github.com/kylechui/nvim-surround" },
+
+	-- navigation
+	{ src = "https://github.com/folke/flash.nvim" },
+
+	-- diagnostics
+	{ src = "https://github.com/folke/trouble.nvim" },
+
+	-- formatting
+	{ src = "https://github.com/stevearc/conform.nvim" },
+
+	-- utilities
+	{ src = "https://github.com/folke/todo-comments.nvim" },
+	{ src = "https://github.com/folke/persistence.nvim" },
+	{ src = "https://github.com/karb94/neoscroll.nvim" },
 
 	-- keymaps
 	{ src = "https://github.com/folke/which-key.nvim" },
@@ -314,6 +329,32 @@ require("avante").setup({ provider = "copilot" })
 -- Editing
 -- ─────────────────────────────────────────────────────────────────────────────
 require("nvim-autopairs").setup({ check_ts = true })
+require("nvim-surround").setup()
+
+require("flash").setup({
+	modes = {
+		search = { enabled = false }, -- don't hijack / search
+	},
+})
+
+require("neoscroll").setup({ easing = "sine" })
+
+require("todo-comments").setup()
+
+require("persistence").setup()
+
+require("conform").setup({
+	formatters_by_ft = {
+		lua = { "stylua" },
+		cs  = { "csharpier" },
+	},
+	format_on_save = {
+		timeout_ms   = 2000,
+		lsp_fallback = true,
+	},
+})
+
+require("trouble").setup()
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- UI (Noice)
@@ -348,6 +389,8 @@ require("which-key").add({
 	{ "<leader>l", group = "[L]anguage Server" },
 	{ "<leader>c", group = "[C]lose" },
 	{ "<leader>h", group = "[H]unk (git)" },
+	{ "<leader>x", group = "[X] Trouble diagnostics" },
+	{ "<leader>p", group = "[P]ersistence" },
 })
 
 local keymaps = {
@@ -369,7 +412,7 @@ local keymaps = {
 	{ "n", "<leader><leader>", require("telescope.builtin").buffers,         { desc = "[ ] Search Buffers" } },
 
 	-- language server
-	{ "n", "<leader>lf",       vim.lsp.buf.format,                           { desc = "LSP Format buffer" } },
+	{ "n", "<leader>lf",       function() require("conform").format({ lsp_fallback = true }) end, { desc = "Format buffer" } },
 	{ "n", "<leader>lh",       vim.lsp.buf.hover,                            { desc = "LSP Hover" } },
 	{ "n", "<leader>ld",       vim.lsp.buf.definition,                       { desc = "Go to [D]efinition" } },
 	{ "n", "<leader>li",       vim.lsp.buf.implementation,                   { desc = "Go to [I]mplementation" } },
@@ -401,6 +444,26 @@ local keymaps = {
 
 	-- file tree
 	{ "n", "<leader>e",        ":NvimTreeToggle<CR>",                        { desc = "Open Tree [E]xplorer" } },
+
+	-- flash
+	{ "n", "s",                function() require("flash").jump() end,        { desc = "Flash jump" } },
+	{ "n", "S",                function() require("flash").treesitter() end,  { desc = "Flash treesitter" } },
+
+	-- trouble
+	{ "n", "<leader>xx",       "<cmd>Trouble diagnostics toggle<cr>",        { desc = "Diagnostics" } },
+	{ "n", "<leader>xb",       "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Buffer diagnostics" } },
+	{ "n", "<leader>xs",       "<cmd>Trouble symbols toggle<cr>",            { desc = "Symbols" } },
+	{ "n", "<leader>xl",       "<cmd>Trouble lsp toggle<cr>",                { desc = "LSP definitions / references" } },
+
+	-- todo-comments
+	{ "n", "<leader>sq",       "<cmd>TodoTelescope<cr>",                     { desc = "[S]earch [T]odo comments" } },
+	{ "n", "]t",               function() require("todo-comments").jump_next() end, { desc = "Next todo" } },
+	{ "n", "[t",               function() require("todo-comments").jump_prev() end, { desc = "Prev todo" } },
+
+	-- persistence
+	{ "n", "<leader>ps",       function() require("persistence").load() end,              { desc = "[P]ersistence load [S]ession" } },
+	{ "n", "<leader>pl",       function() require("persistence").load({ last = true }) end, { desc = "[P]ersistence [L]ast session" } },
+	{ "n", "<leader>px",       function() require("persistence").stop() end,              { desc = "[P]ersistence stop" } },
 }
 
 for _, map in ipairs(keymaps) do
