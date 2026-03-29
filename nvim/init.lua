@@ -337,7 +337,7 @@ require("flash").setup({
 	},
 })
 
-require("neoscroll").setup({ easing = "sine" })
+require("neoscroll").setup({ easing = "sine", duration_multiplier = 0.3 })
 
 require("todo-comments").setup()
 
