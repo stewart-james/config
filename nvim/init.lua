@@ -394,6 +394,9 @@ require("which-key").add({
 })
 
 local keymaps = {
+	-- clear search highlight
+	{ "n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" } },
+
 	-- general
 	{ "n", "<leader>o",        ":update<CR> :source<CR>",                   { silent = true, desc = "Save and source file" } },
 	{ "n", "<leader>w",        ":write<CR>",                                 { silent = true, desc = "Write file" } },
