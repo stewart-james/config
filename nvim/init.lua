@@ -146,7 +146,7 @@ require("lualine").setup({
 		globalstatus         = true,
 	},
 	sections = {
-		lualine_a = { "mode" },
+		lualine_a = {},
 		lualine_b = { "branch", "diff", { "diagnostics", symbols = { error = " ", warn = " ", info = " " } } },
 		lualine_c = { { "filename", path = 1 } },
 		lualine_x = { "filetype" },
