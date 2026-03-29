@@ -191,7 +191,26 @@ wezterm.on('update-right-status', function(window, pane)
     { Foreground = { Color = m.bg      } },
     { Text = SOLID_RIGHT               },
   }))
-  window:set_right_status('')
+  local ws_bg    = '#94e2d5'
+  local clock_bg = '#b4befe'
+  local ws_name  = window:active_workspace()
+  window:set_right_status(wezterm.format({
+    -- Workspace pill
+    { Background = { Color = '#181825' } },
+    { Foreground = { Color = ws_bg     } },
+    { Text = SOLID_LEFT                  },
+    { Background = { Color = ws_bg     } },
+    { Foreground = { Color = '#1e1e2e' } },
+    { Attribute = { Intensity = 'Bold' } },
+    { Text = '  \u{f121} ' .. ws_name .. '  ' },
+    -- Clock pill
+    { Background = { Color = ws_bg     } },
+    { Foreground = { Color = clock_bg  } },
+    { Text = SOLID_LEFT                  },
+    { Background = { Color = clock_bg  } },
+    { Foreground = { Color = '#1e1e2e' } },
+    { Text = '  \u{f017} ' .. wezterm.time.now():format('%H:%M') .. '   ' },
+  }))
 end)
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -378,6 +397,26 @@ config.keys = {
   -- ── Layout helpers ────────────────────────────────────────────────────────
   -- Toggle bottom pane to 30% / restore original height
   { key = 't', mods = 'LEADER', action = act.EmitEvent 'toggle-bottom-30' },
+
+  -- ── Workspaces ────────────────────────────────────────────────────────────
+  -- Fuzzy-pick an existing workspace
+  { key = 'w', mods = 'LEADER', action = act.ShowLauncherArgs { flags = 'WORKSPACES' } },
+  -- Create or switch to a named workspace
+  {
+    key  = 'W',
+    mods = 'LEADER',
+    action = act.PromptInputLine {
+      description = 'Workspace name:',
+      action = wezterm.action_callback(function(window, _, name)
+        if name and #name > 0 then
+          window:perform_action(act.SwitchToWorkspace { name = name }, window:active_pane())
+        end
+      end),
+    },
+  },
+  -- Next / previous workspace
+  { key = '.', mods = 'LEADER', action = act.SwitchWorkspaceRelative(1)  },
+  { key = ',', mods = 'LEADER', action = act.SwitchWorkspaceRelative(-1) },
 
   -- ── Misc ──────────────────────────────────────────────────────────────────
   -- Reload config
