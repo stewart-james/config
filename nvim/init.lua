@@ -140,7 +140,7 @@ local thin  = { left = "", right = "" }
 
 require("lualine").setup({
 	options = {
-		theme                = "catppuccin",
+		theme                = "auto",
 		section_separators   = arrow,
 		component_separators = thin,
 		globalstatus         = true,
