@@ -37,6 +37,8 @@ vim.pack.add({
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },
 	{ src = "https://github.com/MunifTanjim/nui.nvim" },
 	{ src = "https://github.com/nvim-lualine/lualine.nvim" },
+	{ src = "https://github.com/rcarriga/nvim-notify" },
+	{ src = "https://github.com/folke/noice.nvim" },
 
 	-- file tree
 	{ src = "https://github.com/nvim-tree/nvim-tree.lua" },
@@ -51,6 +53,10 @@ vim.pack.add({
 	-- git
 	{ src = "https://github.com/NeogitOrg/neogit" },
 	{ src = "https://github.com/sindrets/diffview.nvim" },
+	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
+
+	-- editing
+	{ src = "https://github.com/windwp/nvim-autopairs" },
 
 	-- keymaps
 	{ src = "https://github.com/folke/which-key.nvim" },
@@ -96,6 +102,9 @@ require("catppuccin").setup({
 		blink_cmp       = true,
 		render_markdown = true,
 		lualine         = true,
+		gitsigns        = true,
+		notify          = true,
+		noice           = true,
 	},
 	custom_highlights = function(c)
 		return {
@@ -184,6 +193,30 @@ local function preview_diffview_file_under_cursor()
 
 	view:set_file(file, false, false)
 end
+
+require("gitsigns").setup({
+	signs = {
+		add          = { text = "▎" },
+		change       = { text = "▎" },
+		delete       = { text = "" },
+		topdelete    = { text = "" },
+		changedelete = { text = "▎" },
+		untracked    = { text = "▎" },
+	},
+	on_attach = function(bufnr)
+		local gs = require("gitsigns")
+		local map = function(mode, l, r, desc)
+			vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+		end
+		map("n", "]h", gs.next_hunk,                      "Next hunk")
+		map("n", "[h", gs.prev_hunk,                      "Prev hunk")
+		map("n", "<leader>hs", gs.stage_hunk,             "[H]unk [S]tage")
+		map("n", "<leader>hr", gs.reset_hunk,             "[H]unk [R]eset")
+		map("n", "<leader>hp", gs.preview_hunk,           "[H]unk [P]review")
+		map("n", "<leader>hb", gs.blame_line,             "[H]unk [B]lame")
+		map("n", "<leader>hd", gs.diffthis,               "[H]unk [D]iff")
+	end,
+})
 
 require("diffview").setup({
 	file_panel = {
@@ -278,12 +311,43 @@ require("copilot").setup({
 require("avante").setup({ provider = "copilot" })
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Editing
+-- ─────────────────────────────────────────────────────────────────────────────
+require("nvim-autopairs").setup({ check_ts = true })
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- UI (Noice)
+-- ─────────────────────────────────────────────────────────────────────────────
+require("notify").setup({ background_colour = "#1e1e2e" })
+vim.notify = require("notify")
+
+require("noice").setup({
+	lsp = {
+		override = {
+			["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+			["vim.lsp.util.stylize_markdown"]                = true,
+		},
+	},
+	presets = {
+		bottom_search         = true,
+		long_message_to_split = true,
+		lsp_doc_border        = true,
+	},
+	views = {
+		cmdline_popup = {
+			position = { row = "90%", col = "50%" },
+		},
+	},
+})
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Keymaps
 -- ─────────────────────────────────────────────────────────────────────────────
 require("which-key").add({
 	{ "<leader>s", group = "[S]earch" },
 	{ "<leader>l", group = "[L]anguage Server" },
 	{ "<leader>c", group = "[C]lose" },
+	{ "<leader>h", group = "[H]unk (git)" },
 })
 
 local keymaps = {
