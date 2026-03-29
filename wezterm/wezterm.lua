@@ -171,9 +171,15 @@ wezterm.on('update-right-status', function(window, pane)
 
   -- Fall back to Neovim mode if nvim is running in this pane
   if not m then
-    local nvim_mode = pane:get_user_vars().NVIM_MODE
-    if nvim_mode and nvim_mode ~= '' then
-      m = NVIM_MODES[nvim_mode] or { bg = '#585b70', label = nvim_mode:upper() }
+    local tmp = os.getenv('TEMP') or os.getenv('TMP') or 'C:\\Temp'
+    local path = tmp .. '\\wezterm_nvim_' .. tostring(pane:pane_id()) .. '.mode'
+    local f = io.open(path, 'r')
+    if f then
+      local mode_char = f:read('*l')
+      f:close()
+      if mode_char and mode_char ~= '' then
+        m = NVIM_MODES[mode_char] or { bg = '#585b70', label = mode_char:upper() }
+      end
     end
   end
 

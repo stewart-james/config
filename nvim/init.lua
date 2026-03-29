@@ -531,9 +531,15 @@ vim.api.nvim_create_autocmd("PackChanged", {
 -- WezTerm integration — send Neovim mode to tab bar status indicator
 -- ─────────────────────────────────────────────────────────────────────────────
 local function set_wezterm_mode(mode)
-	if vim.env.TERM_PROGRAM ~= "WezTerm" then return end
-	io.write("\027]1337;SetUserVar=NVIM_MODE=" .. vim.base64.encode(mode) .. "\007")
-	io.flush()
+	local pane_id = vim.env.WEZTERM_PANE
+	if not pane_id then return end
+	local tmp = os.getenv("TEMP") or os.getenv("TMP") or "C:\\Temp"
+	local path = tmp .. "\\wezterm_nvim_" .. pane_id .. ".mode"
+	local f = io.open(path, "w")
+	if f then
+		f:write(mode)
+		f:close()
+	end
 end
 
 vim.api.nvim_create_autocmd("ModeChanged", {
