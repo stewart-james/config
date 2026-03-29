@@ -16,6 +16,11 @@ vim.o.swapfile       = false
 vim.o.clipboard      = "unnamedplus"
 vim.o.title          = true
 vim.o.titlestring    = [[%t – %{fnamemodify(getcwd(), ':t')}]]
+vim.o.termguicolors  = true
+vim.o.cursorline     = true
+vim.o.showmode       = false  -- lualine shows mode
+vim.o.laststatus     = 3      -- global statusline
+vim.o.cmdheight      = 1
 
 vim.cmd("set completeopt+=noselect")
 
@@ -31,6 +36,7 @@ vim.pack.add({
 	{ src = "https://github.com/catppuccin/nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },
 	{ src = "https://github.com/MunifTanjim/nui.nvim" },
+	{ src = "https://github.com/nvim-lualine/lualine.nvim" },
 
 	-- file tree
 	{ src = "https://github.com/nvim-tree/nvim-tree.lua" },
@@ -73,6 +79,62 @@ vim.pack.add({
 })
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Appearance
+-- ─────────────────────────────────────────────────────────────────────────────
+require("catppuccin").setup({
+	flavour = "mocha",
+	integrations = {
+		treesitter      = true,
+		telescope       = { enabled = true },
+		which_key       = true,
+		mason           = true,
+		neogit          = true,
+		diffview        = true,
+		dap             = true,
+		dap_ui          = true,
+		nvimtree        = true,
+		blink_cmp       = true,
+		render_markdown = true,
+		lualine         = true,
+	},
+	custom_highlights = function(c)
+		return {
+			-- Relative line numbers: readable but clearly secondary
+			LineNr       = { fg = c.overlay1 },
+			-- Current line number: bold mauve, matches the mode indicator
+			CursorLineNr = { fg = c.mauve, bold = true },
+		}
+	end,
+})
+
+local arrow = { left = "", right = "" }
+local thin  = { left = "", right = "" }
+
+require("lualine").setup({
+	options = {
+		theme                = "catppuccin",
+		section_separators   = arrow,
+		component_separators = thin,
+		globalstatus         = true,
+	},
+	sections = {
+		lualine_a = { "mode" },
+		lualine_b = { "branch", "diff", { "diagnostics", symbols = { error = " ", warn = " ", info = " " } } },
+		lualine_c = { { "filename", path = 1 } },
+		lualine_x = { "filetype" },
+		lualine_y = { "progress" },
+		lualine_z = { "location" },
+	},
+	tabline = {
+		lualine_a = { { "tabs", mode = 2, path = 1, tabs_color = {
+			active   = "lualine_a_normal",
+			inactive = "lualine_b_normal",
+		}}},
+		lualine_z = { "filename" },
+	},
+})
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- LSP / Treesitter
 -- ─────────────────────────────────────────────────────────────────────────────
 require("mason").setup({
@@ -89,7 +151,7 @@ require("nvim-treesitter.configs").setup({
 })
 
 require("lsp_signature").setup({
-	hint_enable    = true,
+	hint_enable     = true,
 	floating_window = true,
 })
 
@@ -125,7 +187,7 @@ end
 
 require("diffview").setup({
 	file_panel = {
-		win_config  = { width = 60 },
+		win_config   = { width = 60 },
 		indent_width = 1,
 	},
 	keymaps = {
@@ -146,9 +208,22 @@ local dapui = require("dapui")
 
 dapui.setup()
 
-dap.listeners.after.event_initialized["dapui_config"]  = function() dapui.open()  end
-dap.listeners.before.event_terminated["dapui_config"]  = function() dapui.close() end
-dap.listeners.before.event_exited["dapui_config"]      = function() dapui.close() end
+-- DAP signs
+vim.fn.sign_define("DapBreakpoint",         { text = "●", texthl = "DapBreakpoint",         linehl = "", numhl = "" })
+vim.fn.sign_define("DapBreakpointCondition",{ text = "◆", texthl = "DapBreakpointCondition", linehl = "", numhl = "" })
+vim.fn.sign_define("DapBreakpointRejected", { text = "●", texthl = "DapBreakpointRejected",  linehl = "", numhl = "" })
+vim.fn.sign_define("DapLogPoint",           { text = "◆", texthl = "DapLogPoint",            linehl = "", numhl = "" })
+vim.fn.sign_define("DapStopped",            { text = "▶", texthl = "DapStopped",             linehl = "DapStopped", numhl = "" })
+
+vim.api.nvim_set_hl(0, "DapBreakpoint",          { fg = "#f38ba8" }) -- red
+vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#f9e2af" }) -- yellow
+vim.api.nvim_set_hl(0, "DapBreakpointRejected",  { fg = "#6c7086" }) -- muted
+vim.api.nvim_set_hl(0, "DapLogPoint",            { fg = "#89b4fa" }) -- blue
+vim.api.nvim_set_hl(0, "DapStopped",             { fg = "#a6e3a1" }) -- green
+
+dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open()  end
+dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
+dap.listeners.before.event_exited["dapui_config"]     = function() dapui.close() end
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Dotnet
@@ -183,7 +258,6 @@ require("telescope").setup({
 	defaults = {
 		file_ignore_patterns = { "%.exe$", "%.dll$", "%.wdp$", "%.sys$", "%.rc$", "%.inf$", "%.png$" },
 		path_display = function(_, path)
-			local tail  = require("telescope.utils").path_tail(path)
 			local parts = vim.split(path, "\\")
 			local n     = 3
 			if #parts < n then return path end
@@ -214,55 +288,55 @@ require("which-key").add({
 
 local keymaps = {
 	-- general
-	{ "n", "<leader>o",       ":update<CR> :source<CR>",                   { silent = true, desc = "Save and source file" } },
-	{ "n", "<leader>w",       ":write<CR>",                                 { silent = true, desc = "Write file" } },
-	{ "n", "<leader>q",       ":quit<CR>",                                  { silent = true, desc = "Quit" } },
-	{ "n", "<leader>ct",      ":tabclose<CR>",                              { desc = "[C]lose [T]ab" } },
-	{ "n", "<leader><tab>",   "<C-^>",                                      { noremap = true } },
+	{ "n", "<leader>o",        ":update<CR> :source<CR>",                   { silent = true, desc = "Save and source file" } },
+	{ "n", "<leader>w",        ":write<CR>",                                 { silent = true, desc = "Write file" } },
+	{ "n", "<leader>q",        ":quit<CR>",                                  { silent = true, desc = "Quit" } },
+	{ "n", "<leader>ct",       ":tabclose<CR>",                              { desc = "[C]lose [T]ab" } },
+	{ "n", "<leader><tab>",    "<C-^>",                                      { noremap = true } },
 
 	-- search
-	{ "n", "<leader>sf",      require("telescope.builtin").find_files,      { desc = "[S]earch [F]iles" } },
-	{ "n", "<leader>st",      require("telescope.builtin").git_files,       { desc = "[S]earch [G]it Files" } },
-	{ "n", "<leader>sh",      require("telescope.builtin").help_tags,       { desc = "[S]earch [H]elp" } },
-	{ "n", "<leader>sk",      require("telescope.builtin").keymaps,         { desc = "[S]earch [K]eymaps" } },
-	{ "n", "<leader>sg",      require("telescope.builtin").live_grep,       { desc = "[S]earch [G]rep" } },
-	{ "n", "<leader>sd",      require("telescope.builtin").diagnostics,     { desc = "[S]earch [D]iagnostics" } },
-	{ "n", "<leader>sr",      require("telescope.builtin").oldfiles,        { desc = "[S]earch [R]ecent Files" } },
-	{ "n", "<leader><leader>", require("telescope.builtin").buffers,        { desc = "[ ] Search Buffers" } },
+	{ "n", "<leader>sf",       require("telescope.builtin").find_files,      { desc = "[S]earch [F]iles" } },
+	{ "n", "<leader>st",       require("telescope.builtin").git_files,       { desc = "[S]earch [G]it Files" } },
+	{ "n", "<leader>sh",       require("telescope.builtin").help_tags,       { desc = "[S]earch [H]elp" } },
+	{ "n", "<leader>sk",       require("telescope.builtin").keymaps,         { desc = "[S]earch [K]eymaps" } },
+	{ "n", "<leader>sg",       require("telescope.builtin").live_grep,       { desc = "[S]earch [G]rep" } },
+	{ "n", "<leader>sd",       require("telescope.builtin").diagnostics,     { desc = "[S]earch [D]iagnostics" } },
+	{ "n", "<leader>sr",       require("telescope.builtin").oldfiles,        { desc = "[S]earch [R]ecent Files" } },
+	{ "n", "<leader><leader>", require("telescope.builtin").buffers,         { desc = "[ ] Search Buffers" } },
 
 	-- language server
-	{ "n", "<leader>lf",      vim.lsp.buf.format,                           { desc = "LSP Format buffer" } },
-	{ "n", "<leader>lh",      vim.lsp.buf.hover,                            { desc = "LSP Hover" } },
-	{ "n", "<leader>ld",      vim.lsp.buf.definition,                       { desc = "Go to [D]efinition" } },
-	{ "n", "<leader>li",      vim.lsp.buf.implementation,                   { desc = "Go to [I]mplementation" } },
-	{ "n", "<leader>lr",      vim.lsp.buf.rename,                           { desc = "[R]ename" } },
-	{ "n", "<leader>la",      vim.lsp.buf.code_action,                      { desc = "Code [A]ction" } },
-	{ "n", "<leader>llr",     vim.lsp.buf.references,                       { desc = "[L]ist [R]eferences" } },
-	{ "n", "<leader>le",      vim.diagnostic.open_float,                    { desc = "LSP [E]rror" } },
+	{ "n", "<leader>lf",       vim.lsp.buf.format,                           { desc = "LSP Format buffer" } },
+	{ "n", "<leader>lh",       vim.lsp.buf.hover,                            { desc = "LSP Hover" } },
+	{ "n", "<leader>ld",       vim.lsp.buf.definition,                       { desc = "Go to [D]efinition" } },
+	{ "n", "<leader>li",       vim.lsp.buf.implementation,                   { desc = "Go to [I]mplementation" } },
+	{ "n", "<leader>lr",       vim.lsp.buf.rename,                           { desc = "[R]ename" } },
+	{ "n", "<leader>la",       vim.lsp.buf.code_action,                      { desc = "Code [A]ction" } },
+	{ "n", "<leader>llr",      vim.lsp.buf.references,                       { desc = "[L]ist [R]eferences" } },
+	{ "n", "<leader>le",       vim.diagnostic.open_float,                    { desc = "LSP [E]rror" } },
 
 	-- dotnet
-	{ "n", "<leader>r",       require("easy-dotnet").run,                   { desc = "[R]un" } },
-	{ "n", "<leader>t",       require("easy-dotnet").testrunner,            { desc = "[T]est" } },
-	{ "n", "<leader>c",       require("easy-dotnet").clean,                 { desc = "[C]lean" } },
-	{ "n", "<leader>dbs",     require("easy-dotnet").build_solution,        { desc = "[D]otnet [B]uild [S]olution" } },
-	{ "n", "<leader>dnr",     require("easy-dotnet").restore,               { desc = "[D]otnet [N]uget [R]estore" } },
-	{ "n", "<leader>dts",     require("easy-dotnet").test_solution,         { desc = "[D]otnet [T]est [S]olution" } },
-	{ "n", "<leader>dtr",     require("easy-dotnet").testrunner,            { desc = "[D]otnet [T]est [R]unner" } },
+	{ "n", "<leader>r",        require("easy-dotnet").run,                   { desc = "[R]un" } },
+	{ "n", "<leader>t",        require("easy-dotnet").testrunner,            { desc = "[T]est" } },
+	{ "n", "<leader>c",        require("easy-dotnet").clean,                 { desc = "[C]lean" } },
+	{ "n", "<leader>dbs",      require("easy-dotnet").build_solution,        { desc = "[D]otnet [B]uild [S]olution" } },
+	{ "n", "<leader>dnr",      require("easy-dotnet").restore,               { desc = "[D]otnet [N]uget [R]estore" } },
+	{ "n", "<leader>dts",      require("easy-dotnet").test_solution,         { desc = "[D]otnet [T]est [S]olution" } },
+	{ "n", "<leader>dtr",      require("easy-dotnet").testrunner,            { desc = "[D]otnet [T]est [R]unner" } },
 
 	-- debugger
-	{ "n", "<leader>b",       require("dap").toggle_breakpoint,             { desc = "Toggle [B]reakpoint" } },
-	{ "n", "<F5>",            require("dap").continue,                      { desc = "Start/continue debugging" } },
-	{ "n", "<F10>",           require("dap").step_over,                     { desc = "Step over" } },
-	{ "n", "<F11>",           require("dap").step_into,                     { desc = "Step into" } },
-	{ "n", "<F12>",           require("dap").step_out,                      { desc = "Step out" } },
-	{ "n", "<leader>dj",      require("dap").down,                          { desc = "Go down stack frame" } },
-	{ "n", "<leader>dk",      require("dap").up,                            { desc = "Go up stack frame" } },
+	{ "n", "<leader>b",        require("dap").toggle_breakpoint,             { desc = "Toggle [B]reakpoint" } },
+	{ "n", "<F5>",             require("dap").continue,                      { desc = "Start/continue debugging" } },
+	{ "n", "<F10>",            require("dap").step_over,                     { desc = "Step over" } },
+	{ "n", "<F11>",            require("dap").step_into,                     { desc = "Step into" } },
+	{ "n", "<F12>",            require("dap").step_out,                      { desc = "Step out" } },
+	{ "n", "<leader>dj",       require("dap").down,                          { desc = "Go down stack frame" } },
+	{ "n", "<leader>dk",       require("dap").up,                            { desc = "Go up stack frame" } },
 
 	-- git
-	{ "n", "<leader>n",       ":Neogit<CR>",                                { desc = "[N]eogit" } },
+	{ "n", "<leader>n",        ":Neogit<CR>",                                { desc = "[N]eogit" } },
 
 	-- file tree
-	{ "n", "<leader>e",       ":NvimTreeToggle<CR>",                        { desc = "Open Tree [E]xplorer" } },
+	{ "n", "<leader>e",        ":NvimTreeToggle<CR>",                        { desc = "Open Tree [E]xplorer" } },
 }
 
 for _, map in ipairs(keymaps) do
