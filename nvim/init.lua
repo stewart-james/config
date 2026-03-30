@@ -299,7 +299,7 @@ require("easy-dotnet").setup({
 		vim.cmd("resize 30")
 		vim.cmd("term " .. command)
 	end,
-	notifications {
+	notifications = {
 		handler = false
 	}
 })
