@@ -84,7 +84,7 @@ vim.pack.add({
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
 	{ src = "https://github.com/mason-org/mason.nvim" },
 	{ src = "https://github.com/mason-org/mason-lspconfig.nvim" },
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "master" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", branch = "master" },
 	{ src = "https://github.com/ray-x/lsp_signature.nvim" },
 
 	-- debug
@@ -190,6 +190,10 @@ vim.lsp.config("roslyn", {})
 -- ─────────────────────────────────────────────────────────────────────────────
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(ev)
+		if vim.startswith(vim.api.nvim_buf_get_name(ev.buf), "diffview://") then
+			vim.lsp.buf_detach_client(ev.buf, ev.data.client_id)
+			return
+		end
 		local client = vim.lsp.get_client_by_id(ev.data.client_id)
 		if client:supports_method("textDocument/completion") then
 			vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
