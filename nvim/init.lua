@@ -48,12 +48,14 @@ vim.pack.add({
 	{ src = "https://github.com/nvim-telescope/telescope.nvim" },
 
 	-- auto complete
+	{ src = "https://github.com/saghen/blink.lib" },
 	{ src = "https://github.com/saghen/blink.cmp" },
 
 	-- git
 	{ src = "https://github.com/NeogitOrg/neogit" },
-	{ src = "https://github.com/sindrets/diffview.nvim" },
+	{ src = "https://github.com/dlyongemallo/diffview.nvim" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
+	{ src = "https://github.com/akinsho/git-conflict.nvim" },
 
 	-- editing
 	{ src = "https://github.com/windwp/nvim-autopairs" },
@@ -173,9 +175,10 @@ require("mason").setup({
 })
 require("mason-lspconfig").setup()
 
-require("nvim-treesitter.configs").setup({
-	ensure_installed = { "c", "css", "c_sharp", "razor", "vim", "vimdoc", "query", "markdown", "markdown_inline", "xml", "html" },
-	highlight = { enable = true },
+require("nvim-treesitter").install({ "c", "css", "c_sharp", "razor", "vim", "vimdoc", "query", "markdown", "markdown_inline", "xml", "html" })
+
+vim.api.nvim_create_autocmd("FileType", {
+	callback = function(ev) pcall(vim.treesitter.start, ev.buf) end,
 })
 
 require("lsp_signature").setup({
@@ -239,6 +242,14 @@ require("gitsigns").setup({
 		map("n", "<leader>hb", gs.blame_line,             "[H]unk [B]lame")
 		map("n", "<leader>hd", gs.diffthis,               "[H]unk [D]iff")
 	end,
+})
+
+require("git-conflict").setup({
+	default_mappings    = true,
+	-- NOTE: left false — git-conflict's disable path calls the removed
+	-- vim.diagnostic.disable() on Neovim 0.12 and throws, which aborts the
+	-- same callback before it reaches the code that sets up co/ct/]x/[x.
+	disable_diagnostics = false,
 })
 
 require("diffview").setup({
@@ -404,6 +415,7 @@ require("which-key").add({
 	{ "<leader>l", group = "[L]anguage Server" },
 	{ "<leader>c", group = "[C]lose" },
 	{ "<leader>h", group = "[H]unk (git)" },
+	{ "<leader>g", group = "[G]it" },
 	{ "<leader>x", group = "[X] Trouble diagnostics" },
 	{ "<leader>p", group = "[P]ersistence" },
 	{ "<leader>i", group = "[I]AI" },
@@ -460,6 +472,8 @@ local keymaps = {
 
 	-- git
 	{ "n", "<leader>n",        ":Neogit<CR>",                                { desc = "[N]eogit" } },
+	{ "n", "<leader>gd",       ":DiffviewOpen<CR>",                          { desc = "[G]it [D]iffview (merge conflicts)" } },
+	{ "n", "<leader>gq",       ":GitConflictListQf<CR>",                     { desc = "[G]it conflict [Q]uickfix list" } },
 
 	-- file tree
 	{ "n", "<leader>e",        ":NvimTreeToggle<CR>",                        { desc = "Open Tree [E]xplorer" } },
@@ -519,7 +533,6 @@ vim.api.nvim_create_autocmd("FileType", {
 	callback = function()
 		vim.keymap.set("n", "q", function()
 			vim.cmd("DiffviewClose")
-			vim.cmd("qa")
 		end, { buffer = true })
 	end,
 })
@@ -535,13 +548,15 @@ vim.api.nvim_create_autocmd("CursorHoldI", {
 	callback = function() vim.lsp.buf.signature_help() end,
 })
 
--- Build Avante after install/update
+-- Build Avante / blink.cmp after install/update
 vim.api.nvim_create_autocmd("PackChanged", {
 	callback = function(ev)
 		local name = ev.data.spec.name
 		local kind = ev.data.kind
 		if name == "avante.nvim" and (kind == "install" or kind == "update") then
 			vim.system({ "make" }, { cwd = ev.data.path }):wait()
+		elseif name == "blink.cmp" and (kind == "install" or kind == "update") then
+			require("blink.cmp").build():pwait()
 		end
 	end,
 })
