@@ -5,7 +5,7 @@
       "src": "https://github.com/yetone/avante.nvim"
     },
     "blink.cmp": {
-      "rev": "dbcf63b90b358f058637ea370202e3849013383b",
+      "rev": "d26c6b0a4ea9188b9d10fdd5b180deba7675e3cd",
       "src": "https://github.com/saghen/blink.cmp"
     },
     "blink.lib": {
@@ -154,7 +154,7 @@
       "src": "https://github.com/MeanderingProgrammer/render-markdown.nvim"
     },
     "roslyn.nvim": {
-      "rev": "2dcbbe81b48f8377df2281d9be4f2c84ccfff520",
+      "rev": "7d8c166a0c70473ffa558d4d2430769d581fa8dd",
       "src": "https://github.com/seblyng/roslyn.nvim"
     },
     "telescope.nvim": {

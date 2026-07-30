@@ -84,6 +84,7 @@ vim.pack.add({
 
 	-- LSP
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
+	{ src = "https://github.com/seblyng/roslyn.nvim" },
 	{ src = "https://github.com/mason-org/mason.nvim" },
 	{ src = "https://github.com/mason-org/mason-lspconfig.nvim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", branch = "master" },
@@ -186,6 +187,9 @@ require("lsp_signature").setup({
 	floating_window = true,
 })
 
+-- Definition comes from roslyn.nvim (nvim-lspconfig ships no "roslyn" config).
+-- filetypes = { "cs", "razor" } out of the box, so Blazor .razor/.cshtml files
+-- get Roslyn's Razor cohosting support — needs Mason's roslyn >= 5.8.0-1.26262.10.
 vim.lsp.config("roslyn", {})
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -296,6 +300,12 @@ dap.listeners.before.event_exited["dapui_config"]     = function() dapui.close()
 -- Dotnet
 -- ─────────────────────────────────────────────────────────────────────────────
 require("easy-dotnet").setup({
+	-- roslyn.nvim already manages a Mason-installed roslyn client for cs/razor;
+	-- easy-dotnet's own embedded Roslyn (client "easy_dotnet") would otherwise
+	-- double-attach to every C#/Razor buffer, doubling definitions/hover/etc.
+	lsp = {
+		enabled = false,
+	},
 	test_runner = {
 		viewmode     = "float",
 		vsplit_width = nil,
