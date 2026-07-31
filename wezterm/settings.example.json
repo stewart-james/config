@@ -1,0 +1,10 @@
+{
+  "repoScanDirs": [
+    "D:\\repos",
+    "D:\\projects\\repos"
+  ],
+  "azureDevOps": {
+    "org": "https://dev.azure.com/your-org",
+    "project": "your-project"
+  }
+}
