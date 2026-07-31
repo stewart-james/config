@@ -220,6 +220,526 @@ wezterm.on('update-right-status', function(window, pane)
 end)
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Machine-local settings: repo scan dirs and Azure DevOps org/project live
+-- in C:\projects\settings.json rather than this file, since this config is
+-- version-controlled (D:\config, pushed to GitHub) and those values are
+-- specific to this machine / this user's ADO setup. See
+-- wezterm/settings.example.json in this repo for the expected shape and
+-- a template to copy to C:\projects\settings.json on a new machine.
+-- Missing file / bad JSON degrades gracefully (empty scan list, ADO
+-- features report a clear error) rather than breaking config load.
+-- ─────────────────────────────────────────────────────────────────────────────
+local function load_settings()
+  local path = 'C:\\projects\\settings.json'
+  local f = io.open(path, 'r')
+  if not f then
+    wezterm.log_warn('wezterm: could not open ' .. path .. ' (repo scanning / Azure DevOps features will be empty until it exists)')
+    return {}
+  end
+  local content = f:read('*a')
+  f:close()
+
+  local data = wezterm.json_parse(content)
+  if not data then
+    wezterm.log_warn('wezterm: failed to parse ' .. path .. ' as JSON')
+    return {}
+  end
+  return data
+end
+
+local settings = load_settings()
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Repository workspace picker
+-- Scans a fixed list of directories for git repos (checking both the
+-- directory itself and its immediate children), then shows a fuzzy picker.
+-- Selecting an entry switches to (or creates) a workspace named after the
+-- repo, with its cwd set to the repo path.
+-- ─────────────────────────────────────────────────────────────────────────────
+local repo_scan_dirs = settings.repoScanDirs or {}
+
+local function find_repos()
+  local repos = {}
+  local seen = {}
+
+  local function add(path)
+    if not seen[path] then
+      seen[path] = true
+      table.insert(repos, path)
+    end
+  end
+
+  for _, dir in ipairs(repo_scan_dirs) do
+    -- Is the directory itself a repo?
+    if #wezterm.glob('.git', dir) > 0 then
+      add(dir)
+    end
+    -- Are any immediate children repos?
+    -- wezterm.glob strips the relative_to prefix from results, so
+    -- reconstruct the absolute path rather than using the match directly.
+    for _, git_dir in ipairs(wezterm.glob('*/.git', dir)) do
+      local child = git_dir:gsub('[/\\]%.git$', '')
+      add(dir .. '\\' .. child)
+    end
+  end
+
+  table.sort(repos)
+  return repos
+end
+
+-- Returns the worktrees attached to the repo at `repo_path` (via `git
+-- worktree list`), excluding the bare administrative entry if present.
+-- A plain repo with no additional worktrees yields a single-element list.
+local function git_worktrees(repo_path)
+  local ok, stdout = wezterm.run_child_process {
+    'git', '-C', repo_path, 'worktree', 'list', '--porcelain',
+  }
+  if not ok then return {} end
+
+  local worktrees = {}
+  local current
+  for line in stdout:gmatch('[^\r\n]+') do
+    local wt_path = line:match('^worktree (.+)$')
+    if wt_path then
+      current = { path = wt_path }
+      table.insert(worktrees, current)
+    elseif current then
+      if line == 'bare' then
+        current.bare = true
+      elseif line == 'detached' then
+        current.branch = '(detached)'
+      elseif line:match('^prunable') then
+        current.prunable = true
+      else
+        local branch = line:match('^branch (.+)$')
+        if branch then
+          current.branch = branch:gsub('^refs/heads/', '')
+        end
+      end
+    end
+  end
+
+  local checkouts = {}
+  for _, wt in ipairs(worktrees) do
+    if not wt.bare and not wt.prunable then table.insert(checkouts, wt) end
+  end
+  return checkouts
+end
+
+-- `spawn_args`, if given, overrides the program run in the new workspace's
+-- pane (default is the shell configured in config.default_prog).
+local function switch_to_repo(window, pane, path, name, spawn_args)
+  local spawn = { cwd = path }
+  if spawn_args then spawn.args = spawn_args end
+  window:perform_action(
+    act.SwitchToWorkspace { name = name, spawn = spawn },
+    pane
+  )
+end
+
+local function pick_worktree(window, pane, repo_name, worktrees)
+  local choices = {}
+  for _, wt in ipairs(worktrees) do
+    table.insert(choices, {
+      id = wt.path,
+      label = (wt.branch or wt.path) .. '  (' .. wt.path .. ')',
+    })
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'Worktrees: ' .. repo_name,
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, id, label)
+        if not id then return end
+        local branch = label:match('^(.-)  %(')
+        switch_to_repo(win, active_pane, id, repo_name .. ':' .. branch)
+      end),
+    },
+    pane
+  )
+end
+
+wezterm.on('pick-repo-workspace', function(window, pane)
+  local choices = {}
+  for _, repo in ipairs(find_repos()) do
+    table.insert(choices, { id = repo, label = repo:match('([^/\\]+)$') })
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'Repositories',
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, id, label)
+        if not id then return end
+        local worktrees = git_worktrees(id)
+        if #worktrees > 1 then
+          pick_worktree(win, active_pane, label, worktrees)
+        else
+          switch_to_repo(win, active_pane, id, label)
+        end
+      end),
+    },
+    pane
+  )
+end)
+
+-- True if `repo_path` is set up as a bare repo (the container/worktree-add
+-- pattern), as opposed to a normal single-checkout clone.
+local function is_bare_repo(repo_path)
+  local ok, stdout = wezterm.run_child_process {
+    'git', '-C', repo_path, 'rev-parse', '--is-bare-repository',
+  }
+  return ok and stdout:match('^%s*(%S+)') == 'true'
+end
+
+-- Creates a new worktree/branch under `repo_path`, mirroring the branch
+-- name as the directory path (e.g. "feature/my_feature" ->
+-- <repo_path>/feature/my_feature), then switches to a workspace for it.
+-- `spawn_args`, if given, is forwarded to switch_to_repo. `pre_switch`, if
+-- given, is called with the new worktree's path right before switching.
+local function create_worktree(window, pane, repo_path, repo_name, branch, spawn_args, pre_switch)
+  branch = branch:match('^%s*(.-)%s*$')
+  if branch == '' then return end
+
+  local existing = git_worktrees(repo_path)
+  local base = existing[1] and existing[1].branch or nil
+
+  local target_path = repo_path .. '/' .. branch
+  local args = {
+    'git', '-C', repo_path, 'worktree', 'add', '-b', branch, target_path,
+  }
+  if base then table.insert(args, base) end
+
+  local ok, stdout, stderr = wezterm.run_child_process(args)
+  if ok then
+    if pre_switch then pre_switch(target_path) end
+    switch_to_repo(window, pane, target_path, repo_name .. ':' .. branch, spawn_args)
+  else
+    window:toast_notification(
+      'Worktree creation failed',
+      (stderr ~= '' and stderr or stdout),
+      nil,
+      8000
+    )
+  end
+end
+
+-- Shared picker flow for both leader+n (plain) and leader+a (+ copilot):
+-- pick a bare repo, prompt for a branch name, create the worktree.
+-- `spawn_args`/`pre_switch`, if given, are forwarded to create_worktree.
+local function prompt_new_worktree(window, pane, spawn_args, pre_switch)
+  local choices = {}
+  for _, repo in ipairs(find_repos()) do
+    if is_bare_repo(repo) then
+      table.insert(choices, { id = repo, label = repo:match('([^/\\]+)$') })
+    end
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'New worktree in...',
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, id, label)
+        if not id then return end
+        win:perform_action(
+          act.PromptInputLine {
+            description = 'Branch name (e.g. feature/my_feature):',
+            action = wezterm.action_callback(function(win2, pane2, branch)
+              if branch and branch ~= '' then
+                create_worktree(win2, pane2, id, label, branch, spawn_args, pre_switch)
+              end
+            end),
+          },
+          active_pane
+        )
+      end),
+    },
+    pane
+  )
+end
+
+wezterm.on('new-worktree', function(window, pane)
+  prompt_new_worktree(window, pane, nil)
+end)
+
+-- Same as new-worktree, but the pane runs copilot after opening (via
+-- -NoExit so a normal shell is still there if copilot isn't installed
+-- or exits).
+local copilot_spawn_args = {
+  'C:/Program Files/PowerShell/7/pwsh.exe', '-NoLogo', '-NoExit', '-Command', 'copilot',
+}
+
+-- Adds `path` to GitHub Copilot CLI's own trustedFolders list (in
+-- %USERPROFILE%\.copilot\config.json) if not already present, so its
+-- one-time "trust this folder?" prompt doesn't interrupt the first launch
+-- in a freshly created worktree. The file has a leading `//` comment line
+-- that isn't valid JSON, so that line is preserved separately around a
+-- normal json_parse/json_encode round-trip of the rest. Best-effort: any
+-- failure here just means the prompt shows once, same as before.
+local function trust_folder_for_copilot(path)
+  local home = os.getenv('USERPROFILE')
+  if not home then return end
+  local cfg_path = home .. '\\.copilot\\config.json'
+
+  local f = io.open(cfg_path, 'r')
+  if not f then return end
+  local content = f:read('*a')
+  f:close()
+
+  local header_lines = {}
+  local body = content
+  while true do
+    local first_line, rest = body:match('^(//[^\r\n]*)\r?\n(.*)$')
+    if not first_line then break end
+    table.insert(header_lines, first_line)
+    body = rest
+  end
+  local header = #header_lines > 0 and (table.concat(header_lines, '\n') .. '\n') or ''
+
+  local data = wezterm.json_parse(body)
+  if not data then return end
+
+  local normalized = path:gsub('/', '\\')
+  data.trustedFolders = data.trustedFolders or {}
+  for _, existing in ipairs(data.trustedFolders) do
+    if existing:lower() == normalized:lower() then return end
+  end
+  table.insert(data.trustedFolders, normalized)
+
+  local out = io.open(cfg_path, 'w')
+  if not out then return end
+  out:write(header .. wezterm.json_encode(data))
+  out:close()
+end
+
+wezterm.on('new-worktree-copilot', function(window, pane)
+  prompt_new_worktree(window, pane, copilot_spawn_args, trust_folder_for_copilot)
+end)
+
+-- Queries Azure DevOps (via `az boards query`) for work items assigned to
+-- the current user, excluding Tasks and closed/removed items. Requires the
+-- azure-devops CLI extension and `az login`, plus an "azureDevOps": {"org":
+-- ..., "project": ...} entry in C:\projects\settings.json (see
+-- load_settings above; org is the full URL, e.g. https://dev.azure.com/contoso).
+-- Returns (pbis, nil) or (nil, error_message).
+--
+-- NOTE: az CLI isn't available on this machine to verify against, so the
+-- JSON field parsing below (item.fields['System.Id'/'System.Title']) is
+-- based on Azure DevOps's documented work-item JSON shape, not a live
+-- test. If az boards query returns something shaped differently on your
+-- end, this'll need adjusting.
+local function query_my_pbis()
+  local ado = settings.azureDevOps or {}
+  local org = ado.org
+  local project = ado.project
+  if not org or org == '' or not project or project == '' then
+    return nil, 'azureDevOps.org / azureDevOps.project not set in C:\\projects\\settings.json'
+  end
+
+  local wiql = "SELECT [System.Id], [System.Title] FROM WorkItems "
+    .. "WHERE [System.WorkItemType] <> 'Task' AND [System.AssignedTo] = @Me "
+    .. "AND [System.State] NOT IN ('Done', 'Removed', 'Closed') "
+    .. "ORDER BY [System.ChangedDate] DESC"
+
+  local ok, stdout, stderr = wezterm.run_child_process {
+    'az', 'boards', 'query', '--wiql', wiql, '--org', org, '--project', project, '-o', 'json',
+  }
+  if not ok then return nil, (stderr ~= '' and stderr or stdout) end
+
+  local items = wezterm.json_parse(stdout)
+  if not items then return nil, 'failed to parse az boards query output' end
+
+  local pbis = {}
+  for _, item in ipairs(items) do
+    local fields = item.fields or item
+    local id = fields['System.Id'] or item.id
+    local title = fields['System.Title']
+    if id and title then
+      table.insert(pbis, { id = tostring(id), title = title })
+    end
+  end
+  return pbis, nil
+end
+
+wezterm.on('new-worktree-pbi', function(window, pane)
+  local repo_choices = {}
+  for _, repo in ipairs(find_repos()) do
+    if is_bare_repo(repo) then
+      table.insert(repo_choices, { id = repo, label = repo:match('([^/\\]+)$') })
+    end
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'New PBI worktree in...',
+      choices = repo_choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, repo_path, repo_label)
+        if not repo_path then return end
+
+        local pbis, err = query_my_pbis()
+        if not pbis then
+          win:toast_notification('Azure DevOps query failed', err or 'unknown error', nil, 8000)
+          return
+        end
+        if #pbis == 0 then
+          win:toast_notification('No PBIs found', 'No work items assigned to you matched the query', nil, 5000)
+          return
+        end
+
+        local pbi_choices = {}
+        for _, pbi in ipairs(pbis) do
+          table.insert(pbi_choices, { id = pbi.id, label = '#' .. pbi.id .. '  ' .. pbi.title })
+        end
+
+        win:perform_action(
+          act.InputSelector {
+            title = 'PBIs assigned to you',
+            choices = pbi_choices,
+            fuzzy = true,
+            action = wezterm.action_callback(function(win2, pane2, pbi_id, _)
+              if not pbi_id then return end
+              create_worktree(
+                win2, pane2, repo_path, repo_label,
+                'feature/' .. pbi_id, copilot_spawn_args, trust_folder_for_copilot
+              )
+            end),
+          },
+          active_pane
+        )
+      end),
+    },
+    pane
+  )
+end)
+
+local function normalize_path(p)
+  p = p:gsub('^file:///', '')
+  p = p:gsub('\\', '/')
+  p = p:gsub('/+$', '')
+  return p:lower()
+end
+
+-- Kills any wezterm pane (anywhere in the mux, any window/workspace) whose
+-- cwd is the given worktree path or a descendant of it, so Windows releases
+-- its directory handle before we try to remove it. If the invoking pane
+-- itself is one of them, the window is switched to the 'default' workspace
+-- first so it isn't yanked out from under the user.
+local function close_panes_under(window, active_pane, target_path)
+  local target = normalize_path(target_path)
+  local ok, stdout = wezterm.run_child_process { 'wezterm', 'cli', 'list', '--format', 'json' }
+  if not ok then return end
+
+  local panes = wezterm.json_parse(stdout)
+  if not panes then return end
+
+  local active_id = active_pane:pane_id()
+  local kill_active = false
+
+  for _, p in ipairs(panes) do
+    local cwd = p.cwd and normalize_path(p.cwd) or ''
+    if cwd == target or cwd:sub(1, #target + 1) == (target .. '/') then
+      if p.pane_id == active_id then
+        kill_active = true
+      else
+        wezterm.run_child_process { 'wezterm', 'cli', 'kill-pane', '--pane-id', tostring(p.pane_id) }
+      end
+    end
+  end
+
+  if kill_active then
+    window:perform_action(act.SwitchToWorkspace { name = 'default' }, active_pane)
+    wezterm.run_child_process { 'wezterm', 'cli', 'kill-pane', '--pane-id', tostring(active_id) }
+  end
+end
+
+local function delete_worktree(window, pane, repo_path, worktree_path)
+  close_panes_under(window, pane, worktree_path)
+
+  local ok, stdout, stderr = wezterm.run_child_process {
+    'git', '-C', repo_path, 'worktree', 'remove', worktree_path,
+  }
+  if ok then
+    window:toast_notification('Worktree removed', worktree_path, nil, 5000)
+  else
+    window:toast_notification(
+      'Worktree removal failed',
+      (stderr ~= '' and stderr or stdout),
+      nil,
+      8000
+    )
+  end
+end
+
+local function pick_worktree_to_delete(window, pane, repo_path, repo_name, worktrees)
+  local choices = {}
+  for _, wt in ipairs(worktrees) do
+    table.insert(choices, {
+      id = wt.path,
+      label = (wt.branch or wt.path) .. '  (' .. wt.path .. ')',
+    })
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'Delete worktree in: ' .. repo_name,
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, id, label)
+        if not id then return end
+        win:perform_action(
+          act.InputSelector {
+            title = 'Delete ' .. label .. '?',
+            choices = {
+              { id = 'yes', label = 'Yes, delete it' },
+              { id = 'no',  label = 'Cancel' },
+            },
+            action = wezterm.action_callback(function(win2, pane2, confirm_id)
+              if confirm_id == 'yes' then
+                delete_worktree(win2, pane2, repo_path, id)
+              end
+            end),
+          },
+          active_pane
+        )
+      end),
+    },
+    pane
+  )
+end
+
+wezterm.on('delete-worktree', function(window, pane)
+  local choices = {}
+  for _, repo in ipairs(find_repos()) do
+    if is_bare_repo(repo) then
+      table.insert(choices, { id = repo, label = repo:match('([^/\\]+)$') })
+    end
+  end
+
+  window:perform_action(
+    act.InputSelector {
+      title = 'Delete worktree from...',
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(win, active_pane, id, label)
+        if not id then return end
+        local worktrees = git_worktrees(id)
+        if #worktrees == 0 then
+          win:toast_notification('No worktrees', label .. ' has no worktrees to delete', nil, 4000)
+          return
+        end
+        pick_worktree_to_delete(win, active_pane, id, label, worktrees)
+      end),
+    },
+    pane
+  )
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Toggle bottom pane to 30% height (LEADER + t)
 -- Only acts when there are exactly 2 panes in a top/bottom split.
 -- Pressing again restores the original heights.
@@ -333,8 +853,8 @@ config.keys = {
   { key = 'c',     mods = 'LEADER', action = act.SpawnTab 'CurrentPaneDomain' },
   -- Close current tab (with confirmation)
   { key = 'X',     mods = 'LEADER', action = act.CloseCurrentTab { confirm = false } },
-  -- Next / previous tab
-  { key = 'n',     mods = 'LEADER', action = act.ActivateTabRelative(1) },
+  -- Previous tab (next tab freed up leader+n for worktree creation below;
+  -- Ctrl+Tab / Ctrl+Shift+Tab still cycle tabs via WezTerm's defaults)
   { key = 'p',     mods = 'LEADER', action = act.ActivateTabRelative(-1) },
   -- Jump to tab by index (0-based internally, 1-based for the user)
   { key = '1',     mods = 'LEADER', action = act.ActivateTab(0) },
@@ -405,8 +925,18 @@ config.keys = {
   { key = 't', mods = 'LEADER', action = act.EmitEvent 'toggle-bottom-30' },
 
   -- ── Workspaces ────────────────────────────────────────────────────────────
-  -- Fuzzy-pick an existing workspace
-  { key = 'w', mods = 'LEADER', action = act.ShowLauncherArgs { flags = 'WORKSPACES' } },
+  -- Fuzzy-pick a repository to switch/create a workspace for
+  { key = 'w',   mods = 'LEADER', action = act.EmitEvent 'pick-repo-workspace' },
+  -- Create a new worktree (only offers repos set up as bare/worktree containers)
+  { key = 'n',   mods = 'LEADER', action = act.EmitEvent 'new-worktree' },
+  -- Create a new worktree, then launch copilot in it
+  { key = 'a',   mods = 'LEADER', action = act.EmitEvent 'new-worktree-copilot' },
+  -- Create a worktree from one of your assigned Azure DevOps PBIs, then launch copilot
+  { key = 'A',   mods = 'LEADER', action = act.EmitEvent 'new-worktree-pbi' },
+  -- Delete a worktree (closes any panes open in it first, then confirms)
+  { key = 'd',   mods = 'LEADER', action = act.EmitEvent 'delete-worktree' },
+  -- Fuzzy-pick an already-open workspace
+  { key = 'Tab', mods = 'LEADER', action = act.ShowLauncherArgs { flags = 'WORKSPACES' } },
   -- Create or switch to a named workspace
   {
     key  = 'W',
@@ -428,7 +958,7 @@ config.keys = {
   -- Reload config
   { key = 'R',    mods = 'LEADER', action = act.ReloadConfiguration },
   -- Show debug overlay
-  { key = 'd',    mods = 'LEADER', action = act.ShowDebugOverlay },
+  { key = '`',    mods = 'LEADER', action = act.ShowDebugOverlay },
 }
 
 return config
