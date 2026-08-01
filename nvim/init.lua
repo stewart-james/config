@@ -372,6 +372,16 @@ require("obsidian").setup({
 	workspaces = {
 		{ name = "notes", path = "C:/projects/notes" },
 	},
+	daily_notes = {
+		folder      = "daily",
+		date_format = "%Y-%m-%d",
+		template    = "daily.md",
+	},
+	templates = {
+		subdir      = "templates",
+		date_format = "%Y-%m-%d",
+		time_format = "%H:%M",
+	},
 })
 
 require("copilot").setup({
