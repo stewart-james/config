@@ -460,6 +460,33 @@ require("noice").setup({
 })
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Obsidian monthly note (obsidian.nvim only has daily notes built in)
+-- Creates monthly/YYYY-MM.md from templates/monthly.md on first open that month.
+-- ─────────────────────────────────────────────────────────────────────────────
+local function open_monthly_note()
+	local vault      = "C:/projects/notes"
+	local year       = os.date("%Y")
+	local title      = os.date("%B %Y")       -- e.g. "June 2026"
+	local month_name = os.date("%B"):lower()  -- e.g. "june"
+	local dir        = vault .. "/monthly/" .. year
+	local path       = dir .. "/" .. month_name .. ".md"
+
+	if vim.fn.filereadable(path) == 0 then
+		vim.fn.mkdir(dir, "p")
+		local lines = { "# " .. title, "", "## Goals", "- [ ] ", "", "## Notes", "" }
+		local f = io.open(vault .. "/templates/monthly.md", "r")
+		if f then
+			local content = f:read("*a")
+			f:close()
+			lines = vim.split((content:gsub("{{month}}", title)), "\n")
+		end
+		vim.fn.writefile(lines, path)
+	end
+
+	vim.cmd("edit " .. path)
+end
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Keymaps
 -- ─────────────────────────────────────────────────────────────────────────────
 require("which-key").add({
@@ -584,6 +611,7 @@ local keymaps = {
 	{ "n", "<leader>oo",       ":ObsidianToday<CR>",                         { desc = "[O]bsidian t[o]day" } },
 	{ "n", "<leader>o[",       ":ObsidianYesterday<CR>",                     { desc = "[O]bsidian yesterday" } },
 	{ "n", "<leader>o]",       ":ObsidianTomorrow<CR>",                      { desc = "[O]bsidian tomorrow" } },
+	{ "n", "<leader>om",       open_monthly_note,                            { desc = "[O]bsidian [m]onthly note" } },
 
 	-- harpoon
 	{ "n", "<leader>a",        function() harpoon:list():add() end,                        { desc = "Harpoon add file" } },
