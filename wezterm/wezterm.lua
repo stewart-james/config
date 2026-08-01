@@ -545,10 +545,28 @@ local function query_my_pbis()
     .. "AND [System.State] NOT IN ('Done', 'Removed', 'Closed') "
     .. "ORDER BY [System.ChangedDate] DESC"
 
-  local ok, stdout, stderr = wezterm.run_child_process {
-    'az', 'boards', 'query', '--wiql', wiql, '--org', org, '--project', project, '-o', 'json',
-  }
-  if not ok then return nil, (stderr ~= '' and stderr or stdout) end
+  wezterm.log_warn 'wezterm: running az boards query...'
+
+  -- run_child_process can throw (rather than return ok=false) if the
+  -- program can't be spawned at all -- e.g. `az` resolving to `az.cmd` on
+  -- Windows, which isn't a real PE executable. Uncaught, that error would
+  -- propagate out of this action_callback and WezTerm just logs it, with
+  -- no toast and no visible sign anything happened. pcall turns that into
+  -- a normal error() -> toast the same as every other failure here.
+  -- cmd /c ensures .cmd/.bat shims resolve correctly regardless of how
+  -- run_child_process's underlying spawn behaves.
+  local call_ok, ok, stdout, stderr = pcall(wezterm.run_child_process, {
+    'cmd', '/c', 'az', 'boards', 'query', '--wiql', wiql, '--org', org, '--project', project, '-o', 'json',
+  })
+  if not call_ok then
+    wezterm.log_warn('wezterm: az boards query threw: ' .. tostring(ok))
+    return nil, 'failed to run az: ' .. tostring(ok)
+  end
+  if not ok then
+    wezterm.log_warn('wezterm: az boards query failed: ' .. tostring(stderr))
+    return nil, (stderr ~= '' and stderr or stdout)
+  end
+  wezterm.log_warn('wezterm: az boards query stdout: ' .. tostring(stdout))
 
   local items = wezterm.json_parse(stdout)
   if not items then return nil, 'failed to parse az boards query output' end
