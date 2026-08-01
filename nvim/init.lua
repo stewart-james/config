@@ -603,6 +603,14 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- obsidian.nvim / render-markdown.nvim need conceallevel 1-2 to draw their
+-- extra syntax (checkboxes, styled headers, hidden link brackets, etc.);
+-- scoped to markdown only so other filetypes keep the default of 0.
+vim.api.nvim_create_autocmd("FileType", {
+	pattern  = "markdown",
+	callback = function() vim.wo.conceallevel = 2 end,
+})
+
 -- Auto-insert namespace when creating a new C# file
 vim.api.nvim_create_autocmd("BufNewFile", {
 	pattern  = "*.cs",
