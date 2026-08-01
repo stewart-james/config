@@ -520,8 +520,9 @@ wezterm.on('new-worktree-copilot', function(window, pane)
   prompt_new_worktree(window, pane, copilot_spawn_args, trust_folder_for_copilot)
 end)
 
--- Queries Azure DevOps (via `az boards query`) for work items assigned to
--- the current user, excluding Tasks and closed/removed items. Requires the
+-- Queries Azure DevOps (via `az boards query`) for Product Backlog Items,
+-- Bugs, and Maintenance Backlog Items assigned to the current user,
+-- excluding closed/removed items. Requires the
 -- azure-devops CLI extension and `az login`, plus an "azureDevOps": {"org":
 -- ..., "project": ...} entry in C:\projects\settings.json (see
 -- load_settings above; org is the full URL, e.g. https://dev.azure.com/contoso).
@@ -541,7 +542,8 @@ local function query_my_pbis()
   end
 
   local wiql = "SELECT [System.Id], [System.Title] FROM WorkItems "
-    .. "WHERE [System.WorkItemType] <> 'Task' AND [System.AssignedTo] = @Me "
+    .. "WHERE [System.WorkItemType] IN ('Product Backlog Item', 'Bug', 'Maintenance Backlog Item') "
+    .. "AND [System.AssignedTo] = @Me "
     .. "AND [System.State] NOT IN ('Done', 'Removed', 'Closed') "
     .. "ORDER BY [System.ChangedDate] DESC"
 
