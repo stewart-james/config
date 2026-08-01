@@ -462,6 +462,7 @@ require("which-key").add({
 	{ "<leader>p", group = "[P]ersistence" },
 	{ "<leader>d", group = "[D]otnet" },
 	{ "<leader>i", group = "[I]AI" },
+	{ "<leader>o", group = "[O]bsidian" },
 })
 
 local keymaps = {
@@ -469,7 +470,6 @@ local keymaps = {
 	{ "n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" } },
 
 	-- general
-	{ "n", "<leader>o",        ":update<CR> :source<CR>",                   { silent = true, desc = "Save and source file" } },
 	{ "n", "<leader>w",        ":write<CR>",                                 { silent = true, desc = "Write file" } },
 	{ "n", "<leader>q",        ":quit<CR>",                                  { silent = true, desc = "Quit" } },
 	{ "n", "<leader>ct",       ":tabclose<CR>",                              { desc = "[C]lose [T]ab" } },
@@ -569,6 +569,11 @@ local keymaps = {
 			question = "Add C# XML <summary> documentation comments to all public classes, methods, and properties that are missing XML documentation. Only add /// <summary>...</summary> doc comment blocks immediately above each undocumented public member. Do not modify any existing code or existing documentation.",
 		})
 	end, { desc = "[I]AI [D]ocument C# public members" } },
+
+	-- obsidian
+	{ "n", "<leader>oo",       ":ObsidianToday<CR>",                         { desc = "[O]bsidian t[o]day" } },
+	{ "n", "<leader>o[",       ":ObsidianYesterday<CR>",                     { desc = "[O]bsidian yesterday" } },
+	{ "n", "<leader>o]",       ":ObsidianTomorrow<CR>",                      { desc = "[O]bsidian tomorrow" } },
 
 	-- harpoon
 	{ "n", "<leader>a",        function() harpoon:list():add() end,                        { desc = "Harpoon add file" } },
