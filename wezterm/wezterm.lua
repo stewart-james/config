@@ -386,6 +386,17 @@ wezterm.on('pick-repo-workspace', function(window, pane)
   )
 end)
 
+-- Jumps straight into the Obsidian vault as its own workspace, opening
+-- nvim (with obsidian.nvim configured against the same path) in it.
+local notes_vault_path = 'C:\\projects\\notes'
+local notes_spawn_args = {
+  'C:/Program Files/PowerShell/7/pwsh.exe', '-NoLogo', '-NoExit', '-Command', 'nvim .',
+}
+
+wezterm.on('open-vault', function(window, pane)
+  switch_to_repo(window, pane, notes_vault_path, 'notes', notes_spawn_args)
+end)
+
 -- True if `repo_path` is set up as a bare repo (the container/worktree-add
 -- pattern), as opposed to a normal single-checkout clone.
 local function is_bare_repo(repo_path)
@@ -932,9 +943,6 @@ config.keys = {
   { key = 'x',    mods = 'LEADER', action = act.CloseCurrentPane { confirm = false } },
   -- Zoom / unzoom pane (temporarily fullscreen within window)
   { key = 'z',    mods = 'LEADER', action = act.TogglePaneZoomState },
-  -- Rotate panes
-  { key = 'o',    mods = 'LEADER', action = act.RotatePanes 'Clockwise' },
-  { key = 'O',    mods = 'LEADER', action = act.RotatePanes 'CounterClockwise' },
 
   -- ── Scrollback ────────────────────────────────────────────────────────────
   { key = '[',    mods = 'LEADER', action = act.ActivateCopyMode },
@@ -947,6 +955,8 @@ config.keys = {
   -- ── Workspaces ────────────────────────────────────────────────────────────
   -- Fuzzy-pick a repository to switch/create a workspace for
   { key = 'w',   mods = 'LEADER', action = act.EmitEvent 'pick-repo-workspace' },
+  -- Jump straight into the Obsidian vault workspace
+  { key = 'o',   mods = 'LEADER', action = act.EmitEvent 'open-vault' },
   -- Create a new worktree (only offers repos set up as bare/worktree containers)
   { key = 'n',   mods = 'LEADER', action = act.EmitEvent 'new-worktree' },
   -- Create a new worktree, then launch copilot in it

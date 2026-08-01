@@ -74,6 +74,7 @@ vim.pack.add({
 	{ src = "https://github.com/folke/todo-comments.nvim" },
 	{ src = "https://github.com/folke/persistence.nvim" },
 	{ src = "https://github.com/karb94/neoscroll.nvim" },
+	{ src = "https://github.com/danymat/neogen" },
 
 	-- navigation
 	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
@@ -94,12 +95,14 @@ vim.pack.add({
 	{ src = "https://github.com/mfussenegger/nvim-dap" },
 	{ src = "https://github.com/nvim-neotest/nvim-nio" },
 	{ src = "https://github.com/rcarriga/nvim-dap-ui" },
+	{ src = "https://github.com/theHamsta/nvim-dap-virtual-text" },
 
 	-- dotnet
 	{ src = "https://github.com/GustavEikaas/easy-dotnet.nvim" },
 
 	-- markdown
 	{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
+	{ src = "https://github.com/epwalsh/obsidian.nvim" },
 
 	-- AI
 	{ src = "https://github.com/zbirenbaum/copilot.lua" },
@@ -190,10 +193,21 @@ require("lsp_signature").setup({
 -- Definition comes from roslyn.nvim (nvim-lspconfig ships no "roslyn" config).
 -- filetypes = { "cs", "razor" } out of the box, so Blazor .razor/.cshtml files
 -- get Roslyn's Razor cohosting support — needs Mason's roslyn >= 5.8.0-1.26262.10.
-vim.lsp.config("roslyn", {})
+vim.lsp.config("roslyn", {
+	settings = {
+		["csharp|background_analysis"] = {
+			dotnet_analyzer_diagnostics_scope = "fullSolution",
+			dotnet_compiler_diagnostics_scope = "fullSolution",
+		},
+		["csharp|code_lens"] = {
+			dotnet_enable_references_code_lens = true,
+			dotnet_enable_tests_code_lens     = true,
+		},
+	},
+})
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Completion
+-- Completion / CodeLens
 -- ─────────────────────────────────────────────────────────────────────────────
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(ev)
@@ -204,6 +218,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		local client = vim.lsp.get_client_by_id(ev.data.client_id)
 		if client:supports_method("textDocument/completion") then
 			vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+		end
+		if client:supports_method("textDocument/codeLens") then
+			vim.lsp.codelens.enable(true, { bufnr = ev.buf })
 		end
 	end,
 })
@@ -278,6 +295,7 @@ local dap   = require("dap")
 local dapui = require("dapui")
 
 dapui.setup()
+require("nvim-dap-virtual-text").setup()
 
 -- DAP signs
 vim.fn.sign_define("DapBreakpoint",         { text = "●", texthl = "DapBreakpoint",         linehl = "", numhl = "" })
@@ -350,6 +368,12 @@ require("render-markdown").setup({
 	file_types = { "markdown", "Avante" },
 })
 
+require("obsidian").setup({
+	workspaces = {
+		{ name = "notes", path = "C:/projects/notes" },
+	},
+})
+
 require("copilot").setup({
 	suggestion = { enabled = false },
 	panel      = { enabled = false },
@@ -392,6 +416,14 @@ require("conform").setup({
 
 require("trouble").setup()
 
+require("neogen").setup({
+	enabled        = true,
+	snippet_engine = "nvim",
+	languages = {
+		cs = { template = { annotation_convention = "xmldoc" } },
+	},
+})
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- UI (Noice)
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -428,6 +460,7 @@ require("which-key").add({
 	{ "<leader>g", group = "[G]it" },
 	{ "<leader>x", group = "[X] Trouble diagnostics" },
 	{ "<leader>p", group = "[P]ersistence" },
+	{ "<leader>d", group = "[D]otnet" },
 	{ "<leader>i", group = "[I]AI" },
 })
 
@@ -450,17 +483,19 @@ local keymaps = {
 	{ "n", "<leader>sg",       require("telescope.builtin").live_grep,       { desc = "[S]earch [G]rep" } },
 	{ "n", "<leader>sd",       require("telescope.builtin").diagnostics,     { desc = "[S]earch [D]iagnostics" } },
 	{ "n", "<leader>sr",       require("telescope.builtin").oldfiles,        { desc = "[S]earch [R]ecent Files" } },
+	{ "n", "<leader>sw",       require("telescope.builtin").lsp_dynamic_workspace_symbols, { desc = "[S]earch [W]orkspace Symbols" } },
 	{ "n", "<leader><leader>", require("telescope.builtin").buffers,         { desc = "[ ] Search Buffers" } },
 
 	-- language server
 	{ "n", "<leader>lf",       function() require("conform").format({ lsp_fallback = true }) end, { desc = "Format buffer" } },
 	{ "n", "<leader>lh",       vim.lsp.buf.hover,                            { desc = "LSP Hover" } },
-	{ "n", "<leader>ld",       vim.lsp.buf.definition,                       { desc = "Go to [D]efinition" } },
-	{ "n", "<leader>li",       vim.lsp.buf.implementation,                   { desc = "Go to [I]mplementation" } },
+	{ "n", "<leader>ld",       require("telescope.builtin").lsp_definitions,      { desc = "Go to [D]efinition" } },
+	{ "n", "<leader>li",       require("telescope.builtin").lsp_implementations,  { desc = "Go to [I]mplementation" } },
 	{ "n", "<leader>lr",       vim.lsp.buf.rename,                           { desc = "[R]ename" } },
 	{ "n", "<leader>la",       vim.lsp.buf.code_action,                      { desc = "Code [A]ction" } },
-	{ "n", "<leader>llr",      vim.lsp.buf.references,                       { desc = "[L]ist [R]eferences" } },
+	{ "n", "<leader>llr",      require("telescope.builtin").lsp_references,       { desc = "[L]ist [R]eferences" } },
 	{ "n", "<leader>le",       vim.diagnostic.open_float,                    { desc = "LSP [E]rror" } },
+	{ "n", "<leader>lc",       vim.lsp.codelens.run,                         { desc = "Run [C]odeLens action" } },
 
 	-- dotnet
 	{ "n", "<leader>r",        require("easy-dotnet").run,                   { desc = "[R]un" } },
@@ -470,6 +505,19 @@ local keymaps = {
 	{ "n", "<leader>dnr",      require("easy-dotnet").restore,               { desc = "[D]otnet [N]uget [R]estore" } },
 	{ "n", "<leader>dts",      require("easy-dotnet").test_solution,         { desc = "[D]otnet [T]est [S]olution" } },
 	{ "n", "<leader>dtr",      require("easy-dotnet").testrunner,            { desc = "[D]otnet [T]est [R]unner" } },
+	{ "n", "<leader>dap",      require("easy-dotnet").add_package,           { desc = "[D]otnet [A]dd [P]ackage" } },
+	{ "n", "<leader>drp",      require("easy-dotnet").remove_package,        { desc = "[D]otnet [R]emove [P]ackage" } },
+	{ "n", "<leader>dou",      require("easy-dotnet").outdated,              { desc = "[D]otnet [O]utdated packages" } },
+	{ "n", "<leader>dse",      require("easy-dotnet").secrets,               { desc = "[D]otnet [Se]crets" } },
+	{ "n", "<leader>dsa",      require("easy-dotnet").solution_add,          { desc = "[D]otnet [S]olution [A]dd project" } },
+	{ "n", "<leader>dsr",      require("easy-dotnet").solution_remove,       { desc = "[D]otnet [S]olution [R]emove project" } },
+	{ "n", "<leader>dfa",      function()
+		vim.ui.input({ prompt = "Migration name: " }, function(name)
+			if name and name ~= "" then require("easy-dotnet").ef_migrations_add(name) end
+		end)
+	end, { desc = "[D]otnet E[F] Migration [A]dd" } },
+	{ "n", "<leader>dfl",      require("easy-dotnet").ef_migrations_list,    { desc = "[D]otnet E[F] Migration [L]ist" } },
+	{ "n", "<leader>dfu",      require("easy-dotnet").ef_database_update,    { desc = "[D]otnet E[F] Database [U]pdate" } },
 
 	-- debugger
 	{ "n", "<leader>b",        require("dap").toggle_breakpoint,             { desc = "Toggle [B]reakpoint" } },
@@ -507,6 +555,9 @@ local keymaps = {
 	{ "n", "<leader>ps",       function() require("persistence").load() end,               { desc = "[P]ersistence load [S]ession" } },
 	{ "n", "<leader>pl",       function() require("persistence").load({ last = true }) end, { desc = "[P]ersistence [L]ast session" } },
 	{ "n", "<leader>px",       function() require("persistence").stop() end,               { desc = "[P]ersistence stop" } },
+
+	-- docs
+	{ "n", "<leader>D", function() require("neogen").generate() end, { desc = "Generate [D]oc annotation" } },
 
 	-- AI
 	{ "n", "<leader>id", function()
